@@ -19,11 +19,11 @@ fn main() {
     boot::sc_init(&mut timers);
     symbols.insert(String::from("Pone"), Symbol(42));
     symbols.insert(String::from("poner"), Symbol(0));
-    timer::Timer::new(&mut timers, Symbol(42));
-    timer::Timer::new(&mut timers, Symbol(0));
+    Timer::new(&mut timers, Symbol(42));
+    Timer::new(&mut timers, Symbol(0));
     let millis = time::Duration::from_millis(200);
     thread::sleep(millis);
-    timer::Timer::print_timers(&mut timers, &symbols)
+    Timer::print_timers(&mut timers, &symbols)
     //return sc_main();
 }
 

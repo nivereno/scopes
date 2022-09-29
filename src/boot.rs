@@ -4,7 +4,7 @@ use crate::{timer::{Timer, self}, symbol::{Symbol, KnownSymbol}};
 
 
 fn on_startup(timers: &mut HashMap<Symbol, Timer>) {
-    timer::Timer::new(timers, Symbol(KnownSymbol::TIMER_Main as u64));
+    Timer::new(timers, Symbol(KnownSymbol::TIMER_Main as u64));
     //let main_compile_time = Timer(TIMER_Main);
 }
 

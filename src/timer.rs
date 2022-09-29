@@ -48,9 +48,9 @@ impl Timer {
     }
     pub fn print_timers(timers: &mut HashMap<Symbol, Timer>, symbols: &BiMap<String, Symbol>) {
         let mut real_sum = std::time::Duration::new(0, 0);
-        timer::Timer::pause(timers, &mut Symbol(KnownSymbol::TIMER_Main as u64));
+        Timer::pause(timers, &mut Symbol(KnownSymbol::TIMER_Main as u64));
         let mut non_user_sum = timers.get_mut(&mut Symbol(KnownSymbol::TIMER_Main as u64)).unwrap().time;
-        timer::Timer::resume(timers, &mut Symbol(KnownSymbol::TIMER_Main as u64));
+        Timer::resume(timers, &mut Symbol(KnownSymbol::TIMER_Main as u64));
         for (k, v) in timers {
             v.pause_self();
             let symbol = symbols.get_by_right(&k).unwrap();
