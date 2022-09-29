@@ -11,7 +11,7 @@ mod boot;
 mod timer;
 
 fn main() {
-    println!("{}", symbol::Symbol(42));
+    println!("{}", Symbol(42));
     let args = std::env::args();
     let mut timers: HashMap<Symbol, Timer> = HashMap::new();
     let mut symbols = BiMap::new();
