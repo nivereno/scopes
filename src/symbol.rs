@@ -73,7 +73,7 @@ impl Symbol {
     pub(crate) fn init_symbols(symbols: &mut BiMap<String, Symbol>) {
         let SCOPES_SYMBOLS = vec![(String::from("TIMER_Main"), Symbol(KnownSymbol::TIMER_Main as u64)), (String::from(""), Symbol(KnownSymbol::SYM_Unnamed as u64)), (String::from("?corrupted?"), Symbol(KnownSymbol::SYM_Corrupted as u64)), (String::from("fn"), Symbol(KnownSymbol::KW_Fn as u64))];
         symbols.extend(SCOPES_SYMBOLS.into_iter());
-        thread::sleep(time::Duration::from_millis(123)); //Testing
+        thread::sleep(time::Duration::from_millis(100)); //Testing
     }
 
     //Maybe constructors but maybe unnecessary
@@ -82,7 +82,7 @@ impl Symbol {
 impl std::fmt::Display for Symbol {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let Symbol(i) = self;
-        return write!(f, "sym:{}", i)
+        return write!(f, "{}", i)
     }
 }
 

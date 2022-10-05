@@ -11,7 +11,6 @@ mod boot;
 mod timer;
 
 fn main() {
-    println!("{}", Symbol(42));
     let args = std::env::args();
     let mut timers = HashMap::new();
     let mut symbols = BiMap::new();
@@ -19,11 +18,8 @@ fn main() {
     boot::init(&mut timers, &mut symbols);
     symbols.insert(String::from("Pone"), Symbol(42));
     symbols.insert(String::from("poner"), Symbol(0));
-    
     Timer::new(&mut timers, Symbol(0));
-    let millis = time::Duration::from_millis(200);
-    thread::sleep(millis);
+    thread::sleep(time::Duration::from_millis(200));
     Timer::print_timers(&mut timers, &symbols)
-    //return sc_main();
 }
 
