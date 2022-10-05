@@ -55,7 +55,7 @@ impl Timer {
             v.pause_self();
             let symbol = symbols.get_by_right(&k).unwrap();
             let time = v.time.as_millis();
-            print!("key: {symbol} val: {time}\n");
+            print!("Timer name: {symbol} Time: {time}\n");
             real_sum += v.time;
             v.resume_self();
         }
