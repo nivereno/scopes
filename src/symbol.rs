@@ -43,7 +43,7 @@ impl SymbolMap {
     
     fn add_symbol(&mut self, name: String) -> Symbol { //Previously get_symbol.... for some reason
         if let sym = self.map.get_by_left(&name) {
-            if let oldname = self.map.get_by_right(&sym.unwrap()){
+            if let oldname = self.map.get_by_right(&sym.unwrap()) {
                 if oldname.unwrap() != &name {
                     print!("internal error: symbol hash collision between {} and {}", name, name); //not quite right
                 }

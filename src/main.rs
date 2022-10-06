@@ -9,6 +9,7 @@ use crate::{symbol::{Symbol, KnownSymbol}, timer::Timer};
 mod symbol;
 mod boot;
 mod timer;
+mod lexerparser;
 
 fn main() {
     let args = std::env::args();
