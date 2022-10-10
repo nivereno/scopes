@@ -1,16 +1,16 @@
 
-
-
-
-struct NumberParser {
+pub struct NumberParser {
     flags: u16,
-    base: i32,
-    dot: i32,
-    digits: Vec<u8>,
-    exponent_digits: Vec<u8>,
+    pub base: i32,
+    pub dot: i32,
+    pub digits: Vec<u8>,
+    pub exponent_digits: Vec<u8>,
 }
 
 impl NumberParser {
+    pub fn new() -> NumberParser {
+        return NumberParser { flags: 0, base: 10, dot: 0, digits: Vec::new(), exponent_digits: Vec::new() }
+    }
     fn is_real(&self) -> bool {
         return (self.flags & NPF::NPF_Real as u16) != 0
     }
@@ -76,10 +76,10 @@ impl NumberParser {
     fn as_uint64(&self) -> u64 {
         todo!()
     }
-    fn parse(&mut self, input: Vec<char>) -> bool {
+    pub fn parse(&mut self, input: Vec<char>) -> bool {
         let mut state = State::State_UnknownSign;
         for char in &input {
-            while state != State::State_End {
+            //while state != State::State_End {
                 match &state {
                     State::State_UnknownSign => {
                         state = State::State_UnknownBase;
@@ -128,24 +128,120 @@ impl NumberParser {
                         }
                     }
                     State::State_ExpectBase => {
-                        
+                        state = State::State_ExpectNumber;
+                        match char {
+                            'x' => {
+                                self.base = 16;
+                                self.flags |= NPF::NPF_Base as u16;
+                            }
+                            'b' => {
+                                self.base = 2;
+                                self.flags |= NPF::NPF_Base as u16;
+                            }
+                            'o' => {
+                                self.base = 8;
+                                self.flags |= NPF::NPF_Base as u16;
+                            }
+                            _ => {
+                                self.digits.push(0)
+                            }
+                        }
                     }
                     State::State_ExpectNumber => {
-    
-                    }
-                    default => {
-    
+                        match char {
+                            '.' => {
+                                if (self.flags & (NPF::NPF_Dot as u16 | NPF::NPF_Exponent as u16)) > 0 {
+                                    state = State::State_End;
+                                    break;
+                                };
+                                self.dot = self.digits.len() as i32;
+                                self.flags |= NPF::NPF_Dot as u16;
+                            }
+                            'p' => {
+                                if (self.flags & NPF::NPF_Exponent as u16) > 0 {
+                                    state = State::State_End;
+                                    break;
+                                }
+                                if self.base != 16 {
+                                    state = State::State_End;
+                                    break;
+                                }
+                                state = State::State_ExpectExponentSign;
+                                self.flags |= NPF::NPF_ExponentSign as u16;
+                            }
+                            'e' => {
+                                if self.base != 16 {
+                                    if (self.flags & NPF::NPF_Exponent as u16) > 0 {
+                                        state = State::State_End;
+                                        break;
+                                    }
+                                    if self.digits.is_empty() {
+                                        state = State::State_End;
+                                        break;
+                                    }
+                                    state = State::State_ExpectExponentSign;
+                                    self.flags |= NPF::NPF_Exponent as u16;
+                                }
+                            }
+                            _ => {
+                                let mut digit: u8 = 0;
+                                match self.base {
+                                    2 => {
+                                        if *char >= '0' && *char <= '1' {
+                                            digit = *char as u8 - '0' as u8;
+                                        } else {state = State::State_End; break;}
+                                    }
+                                    8 => {
+                                        if *char >= '0' && *char <= '7' {
+                                            digit = *char as u8 - '0' as u8;
+                                        } else {state = State::State_End; break;}
+                                    }
+                                    10 => {
+                                        if *char >= '0' && *char <= '9' {
+                                            digit = *char as u8 - '0' as u8;
+                                        } else {state = State::State_End; break;}
+                                    }
+                                    16 => {
+                                        if *char >= '0' && *char <= '9' {
+                                            digit = *char as u8 - '0' as u8;
+                                        } else if *char >= 'A' && *char <= 'F' {
+                                            digit = *char as u8 - 'A' as u8 + 10;
+                                        } else if *char >= 'a' && *char <= 'f' {
+                                            digit = *char as u8 - 'a' as u8 + 10;
+                                        } else {state = State::State_End; break;}
+                                }
+                                _ => {state = State::State_End; break;}
+                            }
+                                self.digits.push(digit);
+                            }
+                        }
                     }
                     State::State_ExpectExponentSign => {
-    
+                        state = State::State_ExpectExponent;
+                        match char {
+                            '+' => {
+                                self.flags |= NPF::NPF_ExponentSign as u16;
+                            }
+                            '-' => {
+                                self.flags |= NPF::NPF_ExponentSign as u16 | NPF::NPF_ExponentNegative as u16;
+                            }
+                            _ => {}
+                        }
                     }
                     State::State_ExpectExponent => {
-    
+                        if *char >= '0' && *char <= '9' {
+                            let temp = char.clone() as u8 - '0' as u8;
+                            self.exponent_digits.push(temp);
+                        } else {state = State::State_End; break;}
+                    }
+                    State::State_End => {
+                        break;
                     }
                 }
-            }
+            //}
             
         }
+    
         if (self.flags & NPF::NPF_Dot as u16) == 0 {
             self.dot = self.digits.len() as i32;
         }
@@ -159,7 +255,7 @@ impl NumberParser {
         }
         return true
     }
-}
+}  
 
 #[repr(u16)]
 pub enum NPF {
@@ -185,3 +281,11 @@ enum State {
     State_ExpectExponent = 5,
     State_End,
 }
+
+enum RN {
+    RN_Invalid = 0,
+    RN_Untyped = 1,
+    RN_Typed = 2,
+}
+
+
