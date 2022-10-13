@@ -1,3 +1,7 @@
+use std::{iter::{Peekable, Map}, collections::{hash_map, HashMap}, str::Chars};
+
+use crate::symbol::Symbol;
+
 
 pub struct NumberParser {
     flags: u16,
@@ -76,10 +80,10 @@ impl NumberParser {
     fn as_uint64(&self) -> u64 {
         todo!()
     }
-    pub fn parse(&mut self, input: Vec<char>) -> bool {
+    pub fn parse(&mut self, input: &Vec<char>, index: &mut usize) -> bool {
         let mut state = State::State_UnknownSign;
-        for char in &input {
-            //while state != State::State_End {
+        while *index < input.len() {
+                let char = input[*index];
                 match &state {
                     State::State_UnknownSign => {
                         state = State::State_UnknownBase;
@@ -97,27 +101,23 @@ impl NumberParser {
                         match char {
                             'n' | 'N' => {
                                 if input.len() >= 3 {
-                                    if (input[1] == 'a' || input[1] == 'A') && (input[2] == 'n' || input[2] == 'N') {
-                                        //input += 3; Not sure what the point would be?
+                                    if input[*index + 1] == 'a' || input[*index + 1] == 'A' && input[*index + 2] == 'n' || input[*index + 2] == 'N' {
+                                        *index += 3;
                                         self.flags |= NPF::NPF_NaN as u16;
                                         return true
-                                    } else {
-                                        return false
-                                    }   
-                                }
-                                
-                            }
-                            'i' | 'I' => {
-                                if input.len() >= 3 {
-                                    if (input[1] == 'n' || input[1] == 'N') && (input[2] == 'f' || input[2] == 'F') {
-                                    //input += 3; Not sure what the point would be?
-                                    self.flags |= NPF::NPF_Inf as u16;
-                                    return true
-                                } else {
+                                        }
+                                    }
                                     return false
                                 }
-                                }
-                                
+                            'i' | 'I' => {
+                                if input.len() >= 3 {
+                                    if input[*index + 1] == 'n' || input[*index + 1] == 'N' && input[*index + 2] == 'f' || input[*index + 2] == 'F' {
+                                        *index += 3;
+                                        self.flags |= NPF::NPF_Inf as u16;
+                                        return true
+                                        }
+                                    }
+                                    return false
                             }
                             '0' => {
                                 state = State::State_ExpectBase;
@@ -187,27 +187,27 @@ impl NumberParser {
                                 let mut digit: u8 = 0;
                                 match self.base {
                                     2 => {
-                                        if *char >= '0' && *char <= '1' {
-                                            digit = *char as u8 - '0' as u8;
+                                        if char >= '0' && char <= '1' {
+                                            digit = char as u8 - '0' as u8;
                                         } else {state = State::State_End; break;}
                                     }
                                     8 => {
-                                        if *char >= '0' && *char <= '7' {
-                                            digit = *char as u8 - '0' as u8;
+                                        if char >= '0' && char <= '7' {
+                                            digit = char as u8 - '0' as u8;
                                         } else {state = State::State_End; break;}
                                     }
                                     10 => {
-                                        if *char >= '0' && *char <= '9' {
-                                            digit = *char as u8 - '0' as u8;
+                                        if char >= '0' && char <= '9' {
+                                            digit = char as u8 - '0' as u8;
                                         } else {state = State::State_End; break;}
                                     }
                                     16 => {
-                                        if *char >= '0' && *char <= '9' {
-                                            digit = *char as u8 - '0' as u8;
-                                        } else if *char >= 'A' && *char <= 'F' {
-                                            digit = *char as u8 - 'A' as u8 + 10;
-                                        } else if *char >= 'a' && *char <= 'f' {
-                                            digit = *char as u8 - 'a' as u8 + 10;
+                                        if char >= '0' && char <= '9' {
+                                            digit = char as u8 - '0' as u8;
+                                        } else if char >= 'A' && char <= 'F' {
+                                            digit = char as u8 - 'A' as u8 + 10;
+                                        } else if char >= 'a' && char <= 'f' {
+                                            digit = char as u8 - 'a' as u8 + 10;
                                         } else {state = State::State_End; break;}
                                 }
                                 _ => {state = State::State_End; break;}
@@ -229,7 +229,7 @@ impl NumberParser {
                         }
                     }
                     State::State_ExpectExponent => {
-                        if *char >= '0' && *char <= '9' {
+                        if char >= '0' && char <= '9' {
                             let temp = char.clone() as u8 - '0' as u8;
                             self.exponent_digits.push(temp);
                         } else {state = State::State_End; break;}
@@ -238,8 +238,7 @@ impl NumberParser {
                         break;
                     }
                 }
-            //}
-            
+                *index += 1;
         }
     
         if (self.flags & NPF::NPF_Dot as u16) == 0 {
@@ -288,4 +287,54 @@ enum RN {
     RN_Typed = 2,
 }
 
+struct ListBuilder { //probably unnecessery
 
+}
+
+enum Token {
+
+}
+
+/*struct LexerParser {
+    token: Token,
+    base_offset: i32,
+    //file: &SourceFile,
+    input_stream: std::slice::Iter<char>,
+    eof: std::slice::Iter<char>,
+    cursor: std::slice::Iter<char>,
+    next_cursor: std::slice::Iter<char>,
+    lineno: i32,
+    next_lineno: i32,
+    line: std::slice::Iter<char>,
+    Next_line: std::slice::Iter<char>,
+
+    string: std::slice::Iter<char>,
+    string_len: i32,
+
+    value: ValueRef,
+    prefix_Symbol_map: HashMap<Symbol, ConstIntRef>
+}*/
+
+fn get_token_name() {
+
+}
+
+fn is_suffix() {
+
+}
+
+fn verify_good_taste() {
+
+}
+
+// struct lexerparser
+
+
+
+fn read_number(input: &Vec<char>) {
+    let mut number = NumberParser::new();
+    let mut index = 0;
+    if (!number.parse(input, &mut index) /*|| ||*/ ) {
+
+    }
+}

@@ -22,7 +22,9 @@ fn main() {
     Timer::new(&mut timers, Symbol(0));
     thread::sleep(time::Duration::from_millis(200));
     let mut test_parse_number = lexerparser::NumberParser::new();
-    test_parse_number.parse(vec!['+' as char, '0' as char, 'x' as char, '1' as char, '2' as char, '3' as char]);
+    let mut some_string: Vec<char> = "+0x123".chars().collect();
+    let mut index = 0;
+    test_parse_number.parse(&some_string, &mut index);
     println!("{:?} {:?}", test_parse_number.digits, test_parse_number.exponent_digits);
     Timer::print_timers(&mut timers, &symbols)
 }
