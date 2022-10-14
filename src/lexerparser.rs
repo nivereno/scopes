@@ -295,46 +295,146 @@ enum Token {
 
 }
 
-/*struct LexerParser {
-    token: Token,
-    base_offset: i32,
-    //file: &SourceFile,
-    input_stream: std::slice::Iter<char>,
-    eof: std::slice::Iter<char>,
-    cursor: std::slice::Iter<char>,
-    next_cursor: std::slice::Iter<char>,
-    lineno: i32,
-    next_lineno: i32,
-    line: std::slice::Iter<char>,
-    Next_line: std::slice::Iter<char>,
-
-    string: std::slice::Iter<char>,
-    string_len: i32,
-
-    value: ValueRef,
-    prefix_Symbol_map: HashMap<Symbol, ConstIntRef>
-}*/
-
 fn get_token_name() {
 
 }
 
-fn is_suffix() {
+struct LexerParser {
+    token: Token,
+    base_offset: i32,
+    //file: &SourceFile,
+    //input_stream: std::slice::Iter<char>,
+    //eof: std::slice::Iter<char>,
+    //cursor: std::slice::Iter<char>,
+    //next_cursor: std::slice::Iter<char>,
+    lineno: i32,
+    next_lineno: i32,
+    //line: std::slice::Iter<char>,
+    //Next_line: std::slice::Iter<char>,
 
+    //string: std::slice::Iter<char>,
+    string_len: i32,
+
+    //value: ValueRef,
+    //prefix_Symbol_map: HashMap<Symbol, ConstIntRef>
 }
 
-fn verify_good_taste() {
-
-}
-
-// struct lexerparser
+impl LexerParser {
 
 
-
-fn read_number(input: &Vec<char>) {
-    let mut number = NumberParser::new();
-    let mut index = 0;
-    if (!number.parse(input, &mut index) /*|| ||*/ ) {
+    fn is_suffix() {
 
     }
+
+    fn verify_good_taste() {
+
+    }
+
+    fn new() {
+
+    }
+    fn offset() {
+
+    }
+    fn column() {
+
+    }
+    fn next_column() {
+
+    }
+    fn anchor() {
+
+    }
+    fn next() {
+
+    }
+    fn chars_left() {
+
+    }
+    fn is_eof() {
+
+    }
+    fn newline() {
+
+    }
+    fn select_string() {
+
+    }
+    fn read_single_symbol() {
+
+    }
+    fn read_symbol() {
+
+    }
+    fn read_symbol_or_prefix(){
+
+    }
+    fn read_string() {
+
+    }
+    fn read_block() {
+
+    }
+    fn read_block_string() {
+
+    }
+    fn read_comment() {
+
+    }
+    fn has_suffix() {
+
+    }
+    fn select_integer_suffix() {
+
+    }
+    fn select_real_suffix() {
+
+    }
+    fn read_number(input: &Vec<char>) {
+        let mut number = NumberParser::new();
+        let mut index = 0;
+        if (!number.parse(input, &mut index) /*|| ||*/ ) {
+
+        }
+    }
+    fn next_token() {
+
+    }
+    fn read_token() {
+
+    }
+    fn get_symbol() {
+
+    }
+    fn get_string() {
+
+    }
+    fn get_unescaped_string(){
+
+    }
+    fn get_block_string() {
+
+    }
+    fn get_number() {
+
+    }
+    fn get() {
+
+    }
+    fn parse_list() {
+
+    }
+    fn parse_prefix_string() {
+
+    }
+    fn parse_any() {
+
+    }
+    fn parse_naked() {
+
+    }
+    fn parse() {
+
+    }
+    
 }
