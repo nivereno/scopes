@@ -80,10 +80,10 @@ impl NumberParser {
     fn as_uint64(&self) -> u64 {
         todo!()
     }
-    pub fn parse(&mut self, input: &Vec<char>, index: &mut usize) -> bool {
+    pub fn parse(&mut self, input: &Vec<u8>, index: &mut usize) -> bool {
         let mut state = State::State_UnknownSign;
         while *index < input.len() {
-                let char = input[*index];
+                let char = input[*index] as char;
                 match &state {
                     State::State_UnknownSign => {
                         state = State::State_UnknownBase;
@@ -101,7 +101,7 @@ impl NumberParser {
                         match char {
                             'n' | 'N' => {
                                 if input.len() >= 3 {
-                                    if input[*index + 1] == 'a' || input[*index + 1] == 'A' && input[*index + 2] == 'n' || input[*index + 2] == 'N' {
+                                    if input[*index + 1] == b'a' || input[*index + 1] == b'A' && input[*index + 2] == b'n' || input[*index + 2] == b'N' {
                                         *index += 3;
                                         self.flags |= NPF::NPF_NaN as u16;
                                         return true
@@ -111,7 +111,7 @@ impl NumberParser {
                                 }
                             'i' | 'I' => {
                                 if input.len() >= 3 {
-                                    if input[*index + 1] == 'n' || input[*index + 1] == 'N' && input[*index + 2] == 'f' || input[*index + 2] == 'F' {
+                                    if input[*index + 1] == b'n' || input[*index + 1] == b'N' && input[*index + 2] == b'f' || input[*index + 2] == b'F' {
                                         *index += 3;
                                         self.flags |= NPF::NPF_Inf as u16;
                                         return true
@@ -301,27 +301,25 @@ fn get_token_name() {
 
 struct LexerParser {
     token: Token,
-    base_offset: i32,
+    base_offset: usize,
     //file: &SourceFile,
-    //input_stream: std::slice::Iter<char>,
-    //eof: std::slice::Iter<char>,
-    //cursor: std::slice::Iter<char>,
-    //next_cursor: std::slice::Iter<char>,
-    lineno: i32,
-    next_lineno: i32,
-    //line: std::slice::Iter<char>,
-    //Next_line: std::slice::Iter<char>,
+    input_stream: usize,
+    eof: usize,
+    cursor: usize,
+    next_cursor: usize,
+    lineno: usize,
+    next_lineno: usize,
+    line: usize,
+    next_line: usize,
 
-    //string: std::slice::Iter<char>,
-    string_len: i32,
+    string: Vec<u8>,
+    string_len: usize,
 
     //value: ValueRef,
     //prefix_Symbol_map: HashMap<Symbol, ConstIntRef>
 }
 
 impl LexerParser {
-
-
     fn is_suffix() {
 
     }
@@ -333,35 +331,37 @@ impl LexerParser {
     fn new() {
 
     }
-    fn offset() {
-
+    fn offset(&self) -> usize {
+        return self.base_offset + (self.cursor - self.input_stream)
     }
-    fn column() {
-
+    fn column(&self) -> usize {
+        return self.cursor - self.line + 1
     }
-    fn next_column() {
-
+    fn next_column(&self) -> usize {
+        return self.next_cursor - self.next_line + 1
     }
     fn anchor() {
-
+        return 
     }
     fn next() {
-
+        return
     }
-    fn chars_left() {
-
+    fn chars_left(&self) -> usize {
+        return self.eof - self.next_cursor
     }
-    fn is_eof() {
-
+    fn is_eof(&self) -> bool {
+        return self.next_cursor == self.eof
     }
-    fn newline() {
-
+    fn newline(&mut self) {
+        self.next_lineno = self.next_lineno + 1;
+        self.next_line = self.next_cursor;
     }
-    fn select_string() {
-
+    fn select_string(&mut self) {
+        //self.string = self.cursor;
+        self.string_len = self.next_cursor - self.cursor;
     }
-    fn read_single_symbol() {
-
+    fn read_single_symbol(&mut self) {
+        self.select_string();
     }
     fn read_symbol() {
 
@@ -381,8 +381,8 @@ impl LexerParser {
     fn read_comment() {
 
     }
-    fn has_suffix() {
-
+    fn has_suffix(&self) -> bool {
+        return (self.string_len >= 1) && (self.string[0] == b':')
     }
     fn select_integer_suffix() {
 
@@ -390,15 +390,17 @@ impl LexerParser {
     fn select_real_suffix() {
 
     }
-    fn read_number(input: &Vec<char>) {
+    fn read_number(input: &Vec<u8>) {
         let mut number = NumberParser::new();
         let mut index = 0;
         if (!number.parse(input, &mut index) /*|| ||*/ ) {
 
         }
     }
-    fn next_token() {
-
+    fn next_token(&mut self) {
+        self.lineno = self.next_lineno;
+        self.line = self.next_line;
+        self.cursor = self.next_cursor;
     }
     fn read_token() {
 
@@ -416,7 +418,7 @@ impl LexerParser {
 
     }
     fn get_number() {
-
+        
     }
     fn get() {
 
@@ -436,5 +438,5 @@ impl LexerParser {
     fn parse() {
 
     }
-    
+
 }
