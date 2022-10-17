@@ -1,7 +1,8 @@
-use std::{iter::{Peekable, Map}, collections::{hash_map, HashMap}, str::Chars};
-
-use crate::symbol::Symbol;
-
+use std::{iter::{Peekable, Map}, collections::{hash_map, HashMap}, str::Chars, fs::File, io::Read, any::Any};
+use anyhow::{anyhow, Result, Ok};
+use crate::{symbol::Symbol, valueref::{ValueRef, Value}};
+use crate::lexerparser;
+use crate::valueref;
 
 pub struct NumberParser {
     flags: u16,
@@ -291,18 +292,36 @@ struct ListBuilder { //probably unnecessery
 
 }
 
+#[repr(u8)]
 enum Token {
-
+    tok_none = b'1',
+    tok_eof = b'0',
+    tok_open = b'(',
+    tok_close = b')',
+    tok_square_open = b'[',
+    tok_square_close = b']',
+    tok_curly_open = b'{',
+    tok_curly_close = b'}',
+    tok_string = b'"',
+    tok_block_string = b'B',
+    tok_syntax_quote = b'\'',
+    tok_ast_quote = b'`',
+    tok_symbol = b'S',
+    tok_string_prefix = b'p',
+    tok_escape = b'\\',
+    tok_statement = b';',
+    tok_number = b'N',
 }
 
 fn get_token_name() {
 
 }
 
-struct LexerParser {
+struct LexerParser<T> {
     token: Token,
     base_offset: usize,
-    //file: &SourceFile,
+    //file: &'a File,
+    source: Vec<u8>,
     input_stream: usize,
     eof: usize,
     cursor: usize,
@@ -312,24 +331,51 @@ struct LexerParser {
     line: usize,
     next_line: usize,
 
-    string: Vec<u8>,
+    string: usize,
     string_len: usize,
 
-    //value: ValueRef,
+    value: Value<T>,
     //prefix_Symbol_map: HashMap<Symbol, ConstIntRef>
 }
+fn is_token_terminator(char: u8) -> bool {
+    match char {
+        b'(' | b')' | b'[' | b']' | b'{' | b'}' | b'\"' | b'\'' | b';' | b'#' | b',' => return true,
+        _ => return false
+    }
+}
 
-impl LexerParser {
-    fn is_suffix() {
-
+impl<T> LexerParser<T> {
+    fn is_suffix(&self, suffix: &[u8]) -> bool {
+        let temp = self.string;
+        for c in suffix {
+            if *c != self.source[temp] {
+                return false
+            };
+            temp += 1;
+        }
+        return true
     }
 
-    fn verify_good_taste() {
-
+    fn verify_good_taste(&mut self, c: u8) -> Result<()> {
+        if c == b'\t' {
+            self.next_token();
+            return Err(anyhow!("ParserBadTaste"));
+        }
+        return Ok(())
     }
 
-    fn new() {
+    fn new(_file: &mut File, offset: usize, length: usize) -> LexerParser<f64> {
+        let mut source = Vec::new();
+        _file.read_to_end(&mut source);
+        let input_stream = 0 + offset;
+        let end: usize;
+        if length > 0 {
+            end = input_stream + length;
+        } else {
+            end = source.len();
+        }
 
+        return LexerParser { token: Token::tok_eof, base_offset: offset, source: source, input_stream: input_stream, eof: end, cursor: input_stream, next_cursor: input_stream, lineno: 1, next_lineno: 1, line: input_stream, next_line: input_stream, string: 0, string_len: 0, value: Value(0 as f64) }
     }
     fn offset(&self) -> usize {
         return self.base_offset + (self.cursor - self.input_stream)
@@ -343,8 +389,11 @@ impl LexerParser {
     fn anchor() {
         return 
     }
-    fn next() {
-        return
+    fn next(&mut self) -> Result<u8> {
+        let c = self.source[self.next_cursor];
+        self.verify_good_taste(c)?;
+        self.next_cursor += 1;
+        return Ok(c)
     }
     fn chars_left(&self) -> usize {
         return self.eof - self.next_cursor
@@ -357,35 +406,138 @@ impl LexerParser {
         self.next_line = self.next_cursor;
     }
     fn select_string(&mut self) {
-        //self.string = self.cursor;
+        self.string = self.cursor;
         self.string_len = self.next_cursor - self.cursor;
     }
     fn read_single_symbol(&mut self) {
         self.select_string();
     }
-    fn read_symbol() {
-
+    fn read_symbol(&mut self) -> Result<()> {
+        let mut escape = false;
+        loop {
+            if self.is_eof() {
+                break;
+            }
+            let c = self.next()?;
+            if escape {
+                if c == b'\n' {
+                    self.newline();
+                }
+                escape = false;
+            } else if c == b'\\' {
+                escape = true;
+            } else if c.is_ascii_whitespace() || is_token_terminator(c) {
+                self.next_cursor -= 1;
+                break;
+            }
+        }
+        self.select_string();
+        return Ok(())
     }
-    fn read_symbol_or_prefix(){
-
+    
+    fn read_symbol_or_prefix(&mut self) -> Result<()> {
+        self.token = Token::tok_symbol;
+        let mut escape = false;
+        loop {
+            if self.is_eof() {
+                break;
+            }
+            let c = self.next()?;
+            if escape {
+                if c == b'\n' {
+                    self.newline();
+                }
+                escape = false;
+            } else if c == b'\\' {
+                escape = true;
+            } else if c.is_ascii_whitespace() || is_token_terminator(c) {
+                if c == b'"' {
+                    self.token = Token::tok_string_prefix;
+                }
+                self.next_cursor -= 1;
+                break;
+            }
+        }
+        self.select_string();
+        return Ok(())
     }
-    fn read_string() {
-
+    fn read_string(&mut self) -> Result<()> {
+        let mut escape = false;
+        loop {
+            if self.is_eof() {
+                return Err(anyhow!("ParserUnterminatedSequence"));
+            }
+            let c = self.next()?;
+            if c == b'\n' && !escape {
+                // 0.10
+                //newline();
+                // 0.11
+                return Err(anyhow!("ParserUnexpectedLineBreak"));
+            }
+            if escape {
+                escape = false;
+            } else if c == b'\\' {
+                escape = true;
+            } else if c == b'\0' {  //TODO value::Block::terminator
+                break;
+            }
+        }
+        self.select_string();
+        return Ok(())
     }
-    fn read_block() {
-
+    fn read_block(&mut self) -> Result<()> {
+        let indent = 0; //TODO platform dependent?
+        let col = self.column() + indent;
+        loop {
+            if self.is_eof() {
+                break;
+            }
+            let next_col = self.next_column();
+            let c = self.next()?;
+            if c == b'\n' {
+                self.newline();
+            } else if !c.is_ascii_whitespace() && next_col <= col {
+                self.next_cursor -= 1;
+                break;
+            }
+        }
+        return Ok(())
     }
-    fn read_block_string() {
-
+    fn read_block_string(&mut self) -> Result<()> {
+        self.next()?;
+        self.next()?;
+        self.next()?;
+        self.read_block()?;
+        self.select_string();
+        return Ok(())
     }
-    fn read_comment() {
-
+    fn read_comment(&mut self) -> Result<()> {
+        self.read_block()?;
+        return Ok(())
     }
     fn has_suffix(&self) -> bool {
-        return (self.string_len >= 1) && (self.string[0] == b':')
+        return self.string_len >= 1 && self.source[self.string] == b':'
     }
-    fn select_integer_suffix() {
-
+    fn select_integer_suffix(&self) -> Result<bool> {
+        if !self.has_suffix() {
+            return Ok(false);
+        }
+        
+        if (self.is_suffix(b":i8")) {self.value.anchor(); self.value = Value(self.value.try_into().unwrap());}
+        else if (self.is_suffix(b":i16")) {self.value.anchor(); self.value = Box::new(Value(self.value as i16));}
+        else if (self.is_suffix(b":i32")) {self.value.anchor(); self.value = Box::new(Value(self.value as i32));}
+        else if (self.is_suffix(b":i64")) {self.value.anchor(); self.value = Box::new(Value(self.value as i64));}
+        else if (self.is_suffix(b":u8")) {self.value.anchor(); self.value = Box::new(Value(self.value as u8));}
+        else if (self.is_suffix(b":u16")) {self.value.anchor(); self.value = Box::new(Value(self.value as u16));}
+        else if (self.is_suffix(b":u32")) {self.value.anchor(); self.value = Box::new(Value(self.value as u32));}
+        else if (self.is_suffix(b":u64")) {self.value.anchor(); self.value = Box::new(Value(self.value as u64));}
+        else if (self.is_suffix(b":char")) {self.value.anchor(); self.value = Box::new(Value(self.value as char));}
+        //else if (self.is_suffix(b":isize")) {self.value.anchor(); self.value = Box::new(Value(self.value as isize));}
+        else if (self.is_suffix(b":usize")) {self.value.anchor(); self.value = Box::new(Value(self.value as usize));}
+        else if (self.is_suffix(b":f32")) {{self.value.anchor(); self.value = Box::new(Value(self.value as f32));}
+        } else if (self.is_suffix(b":f64")) {{self.value.anchor(); self.value = Box::new(Value(self.value as f64));}
+        } else {return Err(anyhow!("ParserInvalidIntegerSuffix"));} //ParserInvalidIntegerSuffix
+        return Ok(true)
     }
     fn select_real_suffix() {
 
@@ -397,7 +549,7 @@ impl LexerParser {
 
         }
     }
-    fn next_token(&mut self) {
+    pub fn next_token(&mut self) {
         self.lineno = self.next_lineno;
         self.line = self.next_line;
         self.cursor = self.next_cursor;

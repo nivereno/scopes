@@ -10,6 +10,7 @@ mod symbol;
 mod boot;
 mod timer;
 mod lexerparser;
+mod valueref;
 
 fn main() {
     let args = std::env::args();
