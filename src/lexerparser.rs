@@ -292,6 +292,7 @@ struct ListBuilder { //probably unnecessery
 
 }
 
+#[derive(Clone)]
 #[repr(u8)]
 enum Token {
     tok_none = b'1',
@@ -346,7 +347,7 @@ fn is_token_terminator(char: u8) -> bool {
 
 impl<T> LexerParser<T> {
     fn is_suffix(&self, suffix: &[u8]) -> bool {
-        let temp = self.string;
+        let mut temp = self.string;
         for c in suffix {
             if *c != self.source[temp] {
                 return false
@@ -461,7 +462,7 @@ impl<T> LexerParser<T> {
         self.select_string();
         return Ok(())
     }
-    fn read_string(&mut self) -> Result<()> {
+    fn read_string(&mut self, terminator: u8) -> Result<()> {
         let mut escape = false;
         loop {
             if self.is_eof() {
@@ -478,7 +479,7 @@ impl<T> LexerParser<T> {
                 escape = false;
             } else if c == b'\\' {
                 escape = true;
-            } else if c == b'\0' {  //TODO value::Block::terminator
+            } else if c == terminator {  //TODO value::Block::terminator
                 break;
             }
         }
@@ -518,7 +519,7 @@ impl<T> LexerParser<T> {
     fn has_suffix(&self) -> bool {
         return self.string_len >= 1 && self.source[self.string] == b':'
     }
-    fn select_integer_suffix(&self) -> Result<bool> {
+    /*fn select_integer_suffix(&self) -> Result<bool> {
         if !self.has_suffix() {
             return Ok(false);
         }
@@ -538,24 +539,76 @@ impl<T> LexerParser<T> {
         } else if (self.is_suffix(b":f64")) {{self.value.anchor(); self.value = Box::new(Value(self.value as f64));}
         } else {return Err(anyhow!("ParserInvalidIntegerSuffix"));} //ParserInvalidIntegerSuffix
         return Ok(true)
-    }
+    }*/
     fn select_real_suffix() {
 
     }
-    fn read_number(input: &Vec<u8>) {
+    fn read_number(&self) -> bool {
         let mut number = NumberParser::new();
         let mut index = 0;
+        let mut input = &vec![];
         if (!number.parse(input, &mut index) /*|| ||*/ ) {
 
         }
+        todo!()
     }
     pub fn next_token(&mut self) {
         self.lineno = self.next_lineno;
         self.line = self.next_line;
         self.cursor = self.next_cursor;
     }
-    fn read_token() {
-
+    fn read_token(&mut self) -> Result<Token> {
+        let mut c: u8;
+        loop {
+            self.next_token();
+            if self.is_eof() {self.token = Token::tok_eof; break;}
+            c = self.next()?;
+            if c == b'\n' {self.newline();}
+            if c.is_ascii_whitespace() {continue;}
+            if c == b'#' {
+                self.read_comment()?; 
+                continue;
+            } else if c == b'(' {
+                self.token = Token::tok_open; break;
+            } else if c == b')' {
+                self.token = Token::tok_close; break;
+            } else if c == b'[' {
+                self.token = Token::tok_square_open; break;
+            } else if c == b']' {
+                self.token = Token::tok_square_close; break;
+            } else if c == b'{' {
+                self.token = Token::tok_curly_open; break;
+            } else if c == b'}' {
+                self.token = Token::tok_curly_close; break;
+            } else if c == b'\\' {
+                self.token = Token::tok_escape; break;
+            } else if c == b'"' {
+                if self.chars_left() >= 3 && self.source[self.next_cursor] == b'"' && self.source[self.next_cursor + 1] == b'"' && self.source[self.next_cursor + 2] == b'"' {
+                    self.token = Token::tok_block_string;
+                    self.read_block_string()?;
+                    break;
+                } else {
+                    self.token = Token::tok_string;
+                    self.read_string(c)?;
+                    break;
+                }
+            } else if c == b';' {
+                self.token = Token::tok_statement; break;
+            } else if c == b'\'' {
+                self.token = Token::tok_syntax_quote; break;
+            } else if c == b'`' {
+                self.token = Token::tok_ast_quote; break;
+            } else if c == b',' {
+                self.token = Token::tok_symbol;
+                self.read_single_symbol();
+                break;
+            } else if self.read_number() {
+                self.token = Token::tok_number; break;
+            } else {
+                self.read_symbol_or_prefix()?; break;
+            }
+        }
+        return Ok(self.token.clone())
     }
     fn get_symbol() {
 
