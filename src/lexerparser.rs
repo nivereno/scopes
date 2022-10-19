@@ -618,7 +618,7 @@ impl<T: Clone> LexerParser<T> {
         return String::from_utf8(dest).unwrap();
     }
     fn get_unescaped_string() {
-
+        
     }
     fn get_block_string(&self) -> String {
         let strip_col = self.column() + 4;
