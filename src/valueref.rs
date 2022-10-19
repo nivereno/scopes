@@ -1,10 +1,10 @@
-
-pub struct Value<T: Sized>(pub T);
+#[derive(Clone)]
+pub struct Value<T: Sized + Clone + From<T>>(pub T);
 
 pub trait ValueRef {
 }
 
-impl<T: Sized> ValueRef for Value<T> {
+impl<T: Sized + Clone + From<T>> ValueRef for Value<T> {
 }
 
 impl dyn ValueRef {

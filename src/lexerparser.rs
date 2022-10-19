@@ -1,4 +1,4 @@
-use std::{iter::{Peekable, Map}, collections::{hash_map, HashMap}, str::Chars, fs::File, io::Read, any::Any};
+use std::{iter::{Peekable, Map}, collections::{hash_map, HashMap}, str::Chars, fs::File, io::Read, any::Any, fmt::Display};
 use anyhow::{anyhow, Result, Ok};
 use crate::{symbol::Symbol, valueref::{ValueRef, Value}};
 use crate::lexerparser;
@@ -318,7 +318,7 @@ fn get_token_name() {
 
 }
 
-struct LexerParser<T> {
+struct LexerParser<T: Clone + From<T>> {
     token: Token,
     base_offset: usize,
     //file: &'a File,
@@ -345,7 +345,7 @@ fn is_token_terminator(char: u8) -> bool {
     }
 }
 
-impl<T> LexerParser<T> {
+impl<T: Clone> LexerParser<T> {
     fn is_suffix(&self, suffix: &[u8]) -> bool {
         let mut temp = self.string;
         for c in suffix {
@@ -519,24 +519,24 @@ impl<T> LexerParser<T> {
     fn has_suffix(&self) -> bool {
         return self.string_len >= 1 && self.source[self.string] == b':'
     }
-    /*fn select_integer_suffix(&self) -> Result<bool> {
+    /*fn select_integer_suffix(&mut self) -> Result<bool> {
         if !self.has_suffix() {
             return Ok(false);
         }
         
-        if (self.is_suffix(b":i8")) {self.value.anchor(); self.value = Value(self.value.try_into().unwrap());}
-        else if (self.is_suffix(b":i16")) {self.value.anchor(); self.value = Box::new(Value(self.value as i16));}
-        else if (self.is_suffix(b":i32")) {self.value.anchor(); self.value = Box::new(Value(self.value as i32));}
-        else if (self.is_suffix(b":i64")) {self.value.anchor(); self.value = Box::new(Value(self.value as i64));}
-        else if (self.is_suffix(b":u8")) {self.value.anchor(); self.value = Box::new(Value(self.value as u8));}
-        else if (self.is_suffix(b":u16")) {self.value.anchor(); self.value = Box::new(Value(self.value as u16));}
-        else if (self.is_suffix(b":u32")) {self.value.anchor(); self.value = Box::new(Value(self.value as u32));}
-        else if (self.is_suffix(b":u64")) {self.value.anchor(); self.value = Box::new(Value(self.value as u64));}
-        else if (self.is_suffix(b":char")) {self.value.anchor(); self.value = Box::new(Value(self.value as char));}
-        //else if (self.is_suffix(b":isize")) {self.value.anchor(); self.value = Box::new(Value(self.value as isize));}
-        else if (self.is_suffix(b":usize")) {self.value.anchor(); self.value = Box::new(Value(self.value as usize));}
-        else if (self.is_suffix(b":f32")) {{self.value.anchor(); self.value = Box::new(Value(self.value as f32));}
-        } else if (self.is_suffix(b":f64")) {{self.value.anchor(); self.value = Box::new(Value(self.value as f64));}
+        if (self.is_suffix(b":i8")) {self.value.anchor(); self.value = Value::<i8>(self.value.into());}
+        else if (self.is_suffix(b":i16")) {self.value.anchor(); self.value = Value(self.value as i16);}
+        else if (self.is_suffix(b":i32")) {self.value.anchor(); self.value = Value(self.value as i32);}
+        else if (self.is_suffix(b":i64")) {self.value.anchor(); self.value = Value(self.value as i64);}
+        else if (self.is_suffix(b":u8")) {self.value.anchor(); self.value = Value(self.value as u8);}
+        else if (self.is_suffix(b":u16")) {self.value.anchor(); self.value = Value(self.value as u16);}
+        else if (self.is_suffix(b":u32")) {self.value.anchor(); self.value = Value(self.value as u32);}
+        else if (self.is_suffix(b":u64")) {self.value.anchor(); self.value = Value(self.value as u64);}
+        else if (self.is_suffix(b":char")) {self.value.anchor(); self.value = Value(self.value as char);}
+        //else if (self.is_suffix(b":isize")) {self.value.anchor(); self.value = Value(self.value as isize));}
+        else if (self.is_suffix(b":usize")) {self.value.anchor(); self.value = Value(self.value as usize);}
+        else if (self.is_suffix(b":f32")) {{self.value.anchor(); self.value = Value(self.value as f32);}
+        } else if (self.is_suffix(b":f64")) {{self.value.anchor(); self.value = Value(self.value as f64);}
         } else {return Err(anyhow!("ParserInvalidIntegerSuffix"));} //ParserInvalidIntegerSuffix
         return Ok(true)
     }*/
@@ -613,17 +613,46 @@ impl<T> LexerParser<T> {
     fn get_symbol() {
 
     }
-    fn get_string() {
+    fn get_string(&self) -> String {
+        let dest: Vec<u8> = self.source[self.cursor.. self.string_len].to_vec();
+        return String::from_utf8(dest).unwrap();
+    }
+    fn get_unescaped_string() {
 
     }
-    fn get_unescaped_string(){
-
+    fn get_block_string(&self) -> String {
+        let strip_col = self.column() + 4;
+        let len = self.string_len - 4;
+        assert!(len >= 0);
+        let mut start = self.string + 4;
+        let mut end = start + len;
+        let mut last_lf = end;
+        while end != start {
+            let c = self.source[end - 1];
+            if c.is_ascii_whitespace() {break;}
+            if c == b'\n' {
+                last_lf = end;
+            }
+            end -= 1;
+        }
+        end = last_lf;
+        let mut p = Vec::new();
+        while start != end {
+            let c = self.source[start + 1];
+            p.push(c);
+            if c == b'\n' {
+                // strip leftside column
+                for _ in 1..strip_col {
+                    if start == end {break;}
+                    if self.source[start] != b' ' && self.source[start] != b'\t' {break;}
+                    start += 1;
+                }
+            }
+        }
+        return String::from_utf8(p).unwrap()
     }
-    fn get_block_string() {
-
-    }
-    fn get_number() {
-        
+    fn get_number(&self) -> Value<T> where T: Sized + Clone {
+        return self.value.clone()
     }
     fn get() {
 
