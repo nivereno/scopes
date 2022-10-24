@@ -525,27 +525,27 @@ impl LexerParser {
         }
         
         if let Value::isize(i) = self.value {
-            if (self.is_suffix(b":i8")) {self.value.anchor(); self.value = Value::i8(i as i8);}
-            else if (self.is_suffix(b":i16")) {self.value.anchor(); self.value = Value::i16(i as i16);}
-            else if (self.is_suffix(b":i32")) {self.value.anchor(); self.value = Value::i32(i as i32);}
-            else if (self.is_suffix(b":i64")) {self.value.anchor(); self.value = Value::i64(i as i64);}
-            else if (self.is_suffix(b":u8")) {self.value.anchor(); self.value = Value::u8(i as u8);}
-            else if (self.is_suffix(b":u16")) {self.value.anchor(); self.value = Value::u16(i as u16);}
-            else if (self.is_suffix(b":u32")) {self.value.anchor(); self.value = Value::u32(i as u32);}
-            else if (self.is_suffix(b":u64")) {self.value.anchor(); self.value = Value::u64(i as u64);}
-            else if (self.is_suffix(b":char")) {self.value.anchor(); self.value = Value::char(i as u8 as char);}
-            else if (self.is_suffix(b":isize")) {self.value.anchor(); self.value = Value::isize(i as isize);}
-            else if (self.is_suffix(b":usize")) {self.value.anchor(); self.value = Value::usize(i as usize);}
-            else if (self.is_suffix(b":f32")) {{self.value.anchor(); self.value = Value::f32(i as f32);}
-            } else if (self.is_suffix(b":f64")) {{self.value.anchor(); self.value = Value::f64(i as f64);}
-            } else {return Err(anyhow!("ParserInvalidIntegerSuffix"));} //ParserInvalidIntegerSuffix
+            if self.is_suffix(b":i8") {self.value.anchor(); self.value = Value::i8(i as i8);}
+            else if self.is_suffix(b":i16") {self.value.anchor(); self.value = Value::i16(i as i16);}
+            else if self.is_suffix(b":i32") {self.value.anchor(); self.value = Value::i32(i as i32);}
+            else if self.is_suffix(b":i64") {self.value.anchor(); self.value = Value::i64(i as i64);}
+            else if self.is_suffix(b":u8") {self.value.anchor(); self.value = Value::u8(i as u8);}
+            else if self.is_suffix(b":u16") {self.value.anchor(); self.value = Value::u16(i as u16);}
+            else if self.is_suffix(b":u32") {self.value.anchor(); self.value = Value::u32(i as u32);}
+            else if self.is_suffix(b":u64") {self.value.anchor(); self.value = Value::u64(i as u64);}
+            else if self.is_suffix(b":char") {self.value.anchor(); self.value = Value::char(i as u8 as char);}
+            else if self.is_suffix(b":isize") {self.value.anchor(); self.value = Value::isize(i as isize);}
+            else if self.is_suffix(b":usize") {self.value.anchor(); self.value = Value::usize(i as usize);}
+            else if self.is_suffix(b":f32") {self.value.anchor(); self.value = Value::f32(i as f32);}
+            else if self.is_suffix(b":f64") {self.value.anchor(); self.value = Value::f64(i as f64);}
+            else {return Err(anyhow!("ParserInvalidIntegerSuffix"));} //ParserInvalidIntegerSuffix
             return Ok(true)
         } else {
             return Err(anyhow!("TODO"));
         }
     }
-    fn select_real_suffix() {
-
+    fn select_real_suffix() -> Result<bool> {
+        todo!()
     }
     fn read_number(&mut self) -> bool {
         let mut number = NumberParser::new();
