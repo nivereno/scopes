@@ -1,6 +1,6 @@
 use std::{iter::{Peekable, Map}, collections::{hash_map, HashMap}, str::Chars, fs::File, io::Read, any::Any, fmt::Display};
 use anyhow::{anyhow, Result, Ok};
-use crate::{symbol::Symbol, valueref::{ValueRef, Value}};
+use crate::{symbol::Symbol, valueref::{Value}};
 use crate::lexerparser;
 use crate::valueref;
 
@@ -318,7 +318,7 @@ fn get_token_name() {
 
 }
 
-struct LexerParser<T: Clone + From<T>> {
+struct LexerParser {
     token: Token,
     base_offset: usize,
     //file: &'a File,
@@ -335,8 +335,8 @@ struct LexerParser<T: Clone + From<T>> {
     string: usize,
     string_len: usize,
 
-    value: Value<T>,
-    //prefix_Symbol_map: HashMap<Symbol, ConstIntRef>
+    value: Value,
+    //prefix_Symbol_map: HashMap<Symbol, ConstIntRef>https
 }
 fn is_token_terminator(char: u8) -> bool {
     match char {
@@ -345,7 +345,7 @@ fn is_token_terminator(char: u8) -> bool {
     }
 }
 
-impl<T: Clone> LexerParser<T> {
+impl LexerParser {
     fn is_suffix(&self, suffix: &[u8]) -> bool {
         let mut temp = self.string;
         for c in suffix {
@@ -365,7 +365,7 @@ impl<T: Clone> LexerParser<T> {
         return Ok(())
     }
 
-    fn new(_file: &mut File, offset: usize, length: usize) -> LexerParser<f64> {
+    fn new(_file: &mut File, offset: usize, length: usize) -> LexerParser {
         let mut source = Vec::new();
         _file.read_to_end(&mut source);
         let input_stream = 0 + offset;
@@ -376,7 +376,7 @@ impl<T: Clone> LexerParser<T> {
             end = source.len();
         }
 
-        return LexerParser { token: Token::tok_eof, base_offset: offset, source: source, input_stream: input_stream, eof: end, cursor: input_stream, next_cursor: input_stream, lineno: 1, next_lineno: 1, line: input_stream, next_line: input_stream, string: 0, string_len: 0, value: Value(0 as f64) }
+        return LexerParser { token: Token::tok_eof, base_offset: offset, source: source, input_stream: input_stream, eof: end, cursor: input_stream, next_cursor: input_stream, lineno: 1, next_lineno: 1, line: input_stream, next_line: input_stream, string: 0, string_len: 0, value: Value::isize(0) }
     }
     fn offset(&self) -> usize {
         return self.base_offset + (self.cursor - self.input_stream)
@@ -519,38 +519,41 @@ impl<T: Clone> LexerParser<T> {
     fn has_suffix(&self) -> bool {
         return self.string_len >= 1 && self.source[self.string] == b':'
     }
-    /*fn select_integer_suffix(&mut self) -> Result<bool> {
+    fn select_integer_suffix(&mut self) -> Result<bool> {
         if !self.has_suffix() {
             return Ok(false);
         }
         
-        if (self.is_suffix(b":i8")) {self.value.anchor(); self.value = Value::<i8>(self.value.into());}
-        else if (self.is_suffix(b":i16")) {self.value.anchor(); self.value = Value(self.value as i16);}
-        else if (self.is_suffix(b":i32")) {self.value.anchor(); self.value = Value(self.value as i32);}
-        else if (self.is_suffix(b":i64")) {self.value.anchor(); self.value = Value(self.value as i64);}
-        else if (self.is_suffix(b":u8")) {self.value.anchor(); self.value = Value(self.value as u8);}
-        else if (self.is_suffix(b":u16")) {self.value.anchor(); self.value = Value(self.value as u16);}
-        else if (self.is_suffix(b":u32")) {self.value.anchor(); self.value = Value(self.value as u32);}
-        else if (self.is_suffix(b":u64")) {self.value.anchor(); self.value = Value(self.value as u64);}
-        else if (self.is_suffix(b":char")) {self.value.anchor(); self.value = Value(self.value as char);}
-        //else if (self.is_suffix(b":isize")) {self.value.anchor(); self.value = Value(self.value as isize));}
-        else if (self.is_suffix(b":usize")) {self.value.anchor(); self.value = Value(self.value as usize);}
-        else if (self.is_suffix(b":f32")) {{self.value.anchor(); self.value = Value(self.value as f32);}
-        } else if (self.is_suffix(b":f64")) {{self.value.anchor(); self.value = Value(self.value as f64);}
-        } else {return Err(anyhow!("ParserInvalidIntegerSuffix"));} //ParserInvalidIntegerSuffix
-        return Ok(true)
-    }*/
+        if let Value::isize(i) = self.value {
+            if (self.is_suffix(b":i8")) {self.value.anchor(); self.value = Value::i8(i as i8);}
+            else if (self.is_suffix(b":i16")) {self.value.anchor(); self.value = Value::i16(i as i16);}
+            else if (self.is_suffix(b":i32")) {self.value.anchor(); self.value = Value::i32(i as i32);}
+            else if (self.is_suffix(b":i64")) {self.value.anchor(); self.value = Value::i64(i as i64);}
+            else if (self.is_suffix(b":u8")) {self.value.anchor(); self.value = Value::u8(i as u8);}
+            else if (self.is_suffix(b":u16")) {self.value.anchor(); self.value = Value::u16(i as u16);}
+            else if (self.is_suffix(b":u32")) {self.value.anchor(); self.value = Value::u32(i as u32);}
+            else if (self.is_suffix(b":u64")) {self.value.anchor(); self.value = Value::u64(i as u64);}
+            else if (self.is_suffix(b":char")) {self.value.anchor(); self.value = Value::char(i as u8 as char);}
+            else if (self.is_suffix(b":isize")) {self.value.anchor(); self.value = Value::isize(i as isize);}
+            else if (self.is_suffix(b":usize")) {self.value.anchor(); self.value = Value::usize(i as usize);}
+            else if (self.is_suffix(b":f32")) {{self.value.anchor(); self.value = Value::f32(i as f32);}
+            } else if (self.is_suffix(b":f64")) {{self.value.anchor(); self.value = Value::f64(i as f64);}
+            } else {return Err(anyhow!("ParserInvalidIntegerSuffix"));} //ParserInvalidIntegerSuffix
+            return Ok(true)
+        } else {
+            return Err(anyhow!("TODO"));
+        }
+    }
     fn select_real_suffix() {
 
     }
-    fn read_number(&self) -> bool {
+    fn read_number(&mut self) -> bool {
         let mut number = NumberParser::new();
-        let mut index = 0;
-        let mut input = &vec![];
-        if (!number.parse(input, &mut index) /*|| ||*/ ) {
-
-        }
-        todo!()
+        let mut cend = self.cursor;
+        if !number.parse(&self.source, &mut cend) || cend == self.cursor || cend > self.eof {return false;}
+        self.next_cursor = cend;
+       // if 
+       todo!()
     }
     pub fn next_token(&mut self) {
         self.lineno = self.next_lineno;
@@ -618,7 +621,7 @@ impl<T: Clone> LexerParser<T> {
         return String::from_utf8(dest).unwrap();
     }
     fn get_unescaped_string() {
-        
+
     }
     fn get_block_string(&self) -> String {
         let strip_col = self.column() + 4;
@@ -651,9 +654,9 @@ impl<T: Clone> LexerParser<T> {
         }
         return String::from_utf8(p).unwrap()
     }
-    fn get_number(&self) -> Value<T> where T: Sized + Clone {
-        return self.value.clone()
-    }
+    //fn get_number(&self) -> Value<T> {
+    //    return (*self.value).clone()
+    //}
     fn get() {
 
     }
