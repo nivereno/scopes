@@ -376,7 +376,7 @@ impl LexerParser {
             end = source.len();
         }
 
-        return LexerParser { token: Token::tok_eof, base_offset: offset, source: source, input_stream: input_stream, eof: end, cursor: input_stream, next_cursor: input_stream, lineno: 1, next_lineno: 1, line: input_stream, next_line: input_stream, string: 0, string_len: 0, value: Value::isize(0) }
+        return LexerParser { token: Token::tok_eof, base_offset: offset, source: source, input_stream: input_stream, eof: end, cursor: input_stream, next_cursor: input_stream, lineno: 1, next_lineno: 1, line: input_stream, next_line: input_stream, string: 0, string_len: 0, value: Value::None }
     }
     fn offset(&self) -> usize {
         return self.base_offset + (self.cursor - self.input_stream)
@@ -539,21 +539,67 @@ impl LexerParser {
             else if self.is_suffix(b":f32") {self.value.anchor(); self.value = Value::f32(i as f32);}
             else if self.is_suffix(b":f64") {self.value.anchor(); self.value = Value::f64(i as f64);}
             else {return Err(anyhow!("ParserInvalidIntegerSuffix"));} //ParserInvalidIntegerSuffix
-            return Ok(true)
         } else {
             return Err(anyhow!("TODO"));
         }
+        return Ok(true)
     }
-    fn select_real_suffix() -> Result<bool> {
-        todo!()
+    fn select_real_suffix(&mut self) -> Result<bool> {
+        if !self.has_suffix() {
+            return Ok(false);
+        }
+
+        if let Value::f64(i) = self.value {
+            if self.is_suffix(b":f32") {}
+            else if self.is_suffix(b":f64") {}
+            else {return Err(anyhow!("ParserInvalidRealSuffix"));}
+        } else {
+            return Err(anyhow!("TODO"));
+        }
+        return Ok(true)
     }
-    fn read_number(&mut self) -> bool {
+    fn read_number(&mut self) -> Result<bool> {
         let mut number = NumberParser::new();
         let mut cend = self.cursor;
-        if !number.parse(&self.source, &mut cend) || cend == self.cursor || cend > self.eof {return false;}
+        if !number.parse(&self.source, &mut cend) || cend == self.cursor || cend > self.eof {return Ok(false);}
         self.next_cursor = cend;
-       // if 
-       todo!()
+        if number.is_real() {
+            self.value = Value::f64(number.as_double() as f64);
+            self.value.anchor();
+        } else if number.is_signed() {
+            let val = number.as_int64();
+            if val >= -0x80000000 && val <= 0x7fffffff {
+                self.value = Value::i32(val as i32);
+            } else {
+                self.value = Value::i64(val as i64);
+            }
+        } else {
+            let val = number.as_uint64();
+            if val <= 0x7fffffff {
+                self.value = Value::i32(val as i32)
+            } else if val <= 0xffffffff {
+                self.value = Value::u32(val as u32)
+            } else if val <= 0x7fffffffffffffff {
+                self.value = Value::i64(val as i64)
+            } else {
+                self.value = Value::u64(val as u64)
+            }
+        }
+        if cend == self.eof || self.source[cend].is_ascii_whitespace() || is_token_terminator(self.source[cend]) {
+            return Ok(true);
+        }
+        if self.source[cend] != b':' {
+            return Ok(false);
+        }
+        let _lineno = self.lineno; let _line = self.line; let _cursor = self.cursor;
+        self.next_token();
+        self.read_symbol()?;
+        self.lineno = _lineno; self.line = _line; self.cursor = _cursor;
+        if self.value != Value::None {
+            return Ok(self.select_integer_suffix()?);
+        } else {
+            return Ok(false)
+        }
     }
     pub fn next_token(&mut self) {
         self.lineno = self.next_lineno;
@@ -605,7 +651,7 @@ impl LexerParser {
                 self.token = Token::tok_symbol;
                 self.read_single_symbol();
                 break;
-            } else if self.read_number() {
+            } else if self.read_number()? {
                 self.token = Token::tok_number; break;
             } else {
                 self.read_symbol_or_prefix()?; break;

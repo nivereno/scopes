@@ -1,6 +1,6 @@
 //#[derive(Clone)]
 //pub struct Value<T: Sized>(pub T);
-
+#[derive(PartialEq)]
 pub enum Value {
     i8(i8),
     i16(i16),
@@ -15,6 +15,7 @@ pub enum Value {
     usize(usize),
     f32(f32),
     f64(f64),
+    None
 }
 enum ret {
     i8,
