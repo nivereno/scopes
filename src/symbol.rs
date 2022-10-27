@@ -41,7 +41,7 @@ impl SymbolMap {
         self.map_symbol(id, name);
     }
     
-    fn add_symbol(&mut self, name: String) -> Symbol { //Previously get_symbol.... for some reason
+    pub fn add_symbol(&mut self, name: String) -> Symbol { //Previously get_symbol.... for some reason
         if let sym = self.map.get_by_left(&name) {
             if let oldname = self.map.get_by_right(&sym.unwrap()) {
                 if oldname.unwrap() != &name {

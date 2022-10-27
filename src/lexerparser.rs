@@ -1,6 +1,6 @@
-use std::{iter::{Peekable, Map}, collections::{hash_map, HashMap}, str::Chars, fs::File, io::Read, any::Any, fmt::Display};
+use std::{iter::{Peekable, Map}, collections::{hash_map, HashMap}, str::Chars, fs::File, io::Read, any::Any, fmt::Display, f64::{NAN, INFINITY}};
 use anyhow::{anyhow, Result, Ok};
-use crate::{symbol::Symbol, valueref::{Value}};
+use crate::{symbol::{Symbol, SymbolMap}, valueref::{Value}};
 use crate::lexerparser;
 use crate::valueref;
 
@@ -49,9 +49,9 @@ impl NumberParser {
     fn as_double(&self) -> f64 {
         let mut result: f64 = 0.0;
         if self.is_nan() {
-            todo!()
+            result = NAN;
         } else if self.is_inf() {
-            todo!()
+            result = INFINITY;
         } else {
             let mut i = self.digits.len() as i32;
             for digit in &self.digits {
@@ -72,14 +72,36 @@ impl NumberParser {
         
         return if self.is_negative() {-result} else {result}
     }
-    fn some_template_idk(&self) { //there's some template there might not be a fn
-        todo!()
-    }
+    //fn as_integer<T>(&self) { //there's some template there might not be a fn
+    //    let i = self.dot;
+    //   assert!(i <= self.digits.len());
+    //}
     fn as_int64(&self) -> i64 {
-        todo!()
+        let mut i = self.dot as usize;
+        assert!(i <= self.digits.len());
+        let mut exp: i64 = 1;
+        let mut result: i64 = 0;
+        while i > 0 {
+            result += self.digits[i] as i64 * exp;
+            exp *= self.base as i64;
+            i -= 0;
+        }
+        if self.is_negative() {
+            return -result;
+        }
+        return result;
     }
     fn as_uint64(&self) -> u64 {
-        todo!()
+        let mut i = self.dot as usize;
+        assert!(i <= self.digits.len());
+        let mut exp: u64 = 1;
+        let mut result: u64 = 0;
+        while i > 0 {
+            result += self.digits[i] as u64 * exp;
+            exp *= self.base as u64;
+            i -= 0;
+        }
+        return result;
     }
     pub fn parse(&mut self, input: &Vec<u8>, index: &mut usize) -> bool {
         let mut state = State::State_UnknownSign;
@@ -318,11 +340,11 @@ fn get_token_name() {
 
 }
 
-struct LexerParser {
+struct LexerParser<'a> {
     token: Token,
     base_offset: usize,
     //file: &'a File,
-    source: Vec<u8>,
+    source: &'a Vec<u8>,
     input_stream: usize,
     eof: usize,
     cursor: usize,
@@ -336,6 +358,7 @@ struct LexerParser {
     string_len: usize,
 
     value: Value,
+    list: &'a mut Vec<LexerParser<'a>>
     //prefix_Symbol_map: HashMap<Symbol, ConstIntRef>https
 }
 fn is_token_terminator(char: u8) -> bool {
@@ -345,7 +368,7 @@ fn is_token_terminator(char: u8) -> bool {
     }
 }
 
-impl LexerParser {
+impl <'a>LexerParser<'a> {
     fn is_suffix(&self, suffix: &[u8]) -> bool {
         let mut temp = self.string;
         for c in suffix {
@@ -365,9 +388,9 @@ impl LexerParser {
         return Ok(())
     }
 
-    fn new(_file: &mut File, offset: usize, length: usize) -> LexerParser {
-        let mut source = Vec::new();
-        _file.read_to_end(&mut source);
+    fn new(_list: &'a mut Vec<LexerParser<'a>>, source: &'a Vec<u8>, _file: &'a mut File, offset: usize, length: usize) -> LexerParser<'a> {
+        //let mut source = Vec::new();
+        //_file.read_to_end(&mut source);
         let input_stream = 0 + offset;
         let end: usize;
         if length > 0 {
@@ -376,7 +399,7 @@ impl LexerParser {
             end = source.len();
         }
 
-        return LexerParser { token: Token::tok_eof, base_offset: offset, source: source, input_stream: input_stream, eof: end, cursor: input_stream, next_cursor: input_stream, lineno: 1, next_lineno: 1, line: input_stream, next_line: input_stream, string: 0, string_len: 0, value: Value::None }
+        return LexerParser { token: Token::tok_eof, base_offset: offset, source: source, input_stream: input_stream, eof: end, cursor: input_stream, next_cursor: input_stream, lineno: 1, next_lineno: 1, line: input_stream, next_line: input_stream, string: 0, string_len: 0, value: Value::None, list: _list }
     }
     fn offset(&self) -> usize {
         return self.base_offset + (self.cursor - self.input_stream)
@@ -659,15 +682,17 @@ impl LexerParser {
         }
         return Ok(self.token.clone())
     }
-    fn get_symbol() {
-
+    fn get_symbol(&self, map: &mut SymbolMap) -> Symbol {
+        let dest: Vec<u8> = self.source[self.string.. self.string_len].to_vec();
+        return SymbolMap::add_symbol(map, String::from_utf8(dest).unwrap())
     }
     fn get_string(&self) -> String {
-        let dest: Vec<u8> = self.source[self.cursor.. self.string_len].to_vec();
+        let dest: Vec<u8> = self.source[self.string + 1.. self.string_len - 2].to_vec();
         return String::from_utf8(dest).unwrap();
     }
-    fn get_unescaped_string() {
-
+    fn get_unescaped_string(&self) -> String {
+        let dest: Vec<u8> = self.source[self.string + 1.. self.string_len - 3].to_vec();
+        return String::from_utf8(dest).unwrap();
     }
     fn get_block_string(&self) -> String {
         let strip_col = self.column() + 4;
@@ -703,9 +728,7 @@ impl LexerParser {
     //fn get_number(&self) -> Value<T> {
     //    return (*self.value).clone()
     //}
-    fn get() {
-
-    }
+    //fn get() {}
     fn parse_list() {
 
     }
