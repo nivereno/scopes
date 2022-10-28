@@ -1,7 +1,7 @@
 use std::{iter::{Peekable, Map}, collections::{hash_map, HashMap}, str::Chars, fs::File, io::Read, any::Any, fmt::Display, f64::{NAN, INFINITY}};
 use anyhow::{anyhow, Result, Ok};
 use num::{Num, NumCast, ToPrimitive};
-use crate::{symbol::{Symbol, SymbolMap}, valueref::{Value}};
+use crate::{symbol::{Symbol, SymbolMap}, valueref::{Value, ValueRef}, Anchor};
 use crate::lexerparser;
 use crate::valueref;
 use crate::num;
@@ -316,7 +316,7 @@ struct ListBuilder { //probably unnecessery
 
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 #[repr(u8)]
 enum Token {
     tok_none = b'1',
@@ -345,7 +345,7 @@ fn get_token_name() {
 struct LexerParser<'a> {
     token: Token,
     base_offset: usize,
-    //file: &'a File,
+    file: &'a File,
     source: &'a Vec<u8>,
     input_stream: usize,
     eof: usize,
@@ -359,7 +359,7 @@ struct LexerParser<'a> {
     string: usize,
     string_len: usize,
 
-    value: Value,
+    value: ValueRef,
     list: &'a mut Vec<LexerParser<'a>>
     //prefix_Symbol_map: HashMap<Symbol, ConstIntRef>https
 }
@@ -401,7 +401,7 @@ impl <'a>LexerParser<'a> {
             end = source.len();
         }
 
-        return LexerParser { token: Token::tok_eof, base_offset: offset, source: source, input_stream: input_stream, eof: end, cursor: input_stream, next_cursor: input_stream, lineno: 1, next_lineno: 1, line: input_stream, next_line: input_stream, string: 0, string_len: 0, value: Value::None, list: _list }
+        return LexerParser { token: Token::tok_eof, base_offset: offset, file: _file, source: source, input_stream: input_stream, eof: end, cursor: input_stream, next_cursor: input_stream, lineno: 1, next_lineno: 1, line: input_stream, next_line: input_stream, string: 0, string_len: 0, value: ValueRef{value: Value::None, anchor: Anchor::Anchor{}}, list: _list }
     }
     fn offset(&self) -> usize {
         return self.base_offset + (self.cursor - self.input_stream)
@@ -412,8 +412,9 @@ impl <'a>LexerParser<'a> {
     fn next_column(&self) -> usize {
         return self.next_cursor - self.next_line + 1
     }
-    fn anchor() {
-        return 
+    fn anchor(&self) -> Anchor::Anchor {
+        return Anchor::Anchor::from(Symbol(1), self.lineno, self.column(), self.offset()); //TODO Pass in file or filepath?
+        todo!()
     }
     fn next(&mut self) -> Result<u8> {
         let c = self.source[self.next_cursor];
@@ -552,7 +553,7 @@ impl <'a>LexerParser<'a> {
             //} else {
         //    return Err(anyhow!("TODO"));
         //}
-        match self.value {
+        match self.value.value {
             Value::f64(i) => return self.select_integer_suffix_helper(i),
             Value::f32(i) => return self.select_integer_suffix_helper(i),
             Value::i64(i) => return self.select_integer_suffix_helper(i),
@@ -571,19 +572,19 @@ impl <'a>LexerParser<'a> {
         
     }
     fn select_integer_suffix_helper<T: ToPrimitive>(&mut self, i: T) -> Result<bool> { //TODO switch to a match, probably invert the is_suffix
-        if self.is_suffix(b":i8") {self.value.anchor(); self.value = Value::i8(i.to_i8().unwrap());}
-        else if self.is_suffix(b":i16") {self.value.anchor(); self.value = Value::i16(i.to_i16().unwrap());}
-        else if self.is_suffix(b":i32") {self.value.anchor(); self.value = Value::i32(i.to_i32().unwrap());}
-        else if self.is_suffix(b":i64") {self.value.anchor(); self.value = Value::i64(i.to_i64().unwrap());}
-        else if self.is_suffix(b":u8") {self.value.anchor(); self.value = Value::u8(i.to_u8().unwrap());}
-        else if self.is_suffix(b":u16") {self.value.anchor(); self.value = Value::u16(i.to_u16().unwrap());}
-        else if self.is_suffix(b":u32") {self.value.anchor(); self.value = Value::u32(i.to_u32().unwrap());}
-        else if self.is_suffix(b":u64") {self.value.anchor(); self.value = Value::u64(i.to_u64().unwrap());}
-        else if self.is_suffix(b":char") {self.value.anchor(); self.value = Value::char(i.to_u8().unwrap() as char);}
-        else if self.is_suffix(b":isize") {self.value.anchor(); self.value = Value::isize(i.to_isize().unwrap());}
-        else if self.is_suffix(b":usize") {self.value.anchor(); self.value = Value::usize(i.to_usize().unwrap());}
-        else if self.is_suffix(b":f32") {self.value.anchor(); self.value = Value::f32(i.to_f32().unwrap());}
-        else if self.is_suffix(b":f64") {self.value.anchor(); self.value = Value::f64(i.to_f64().unwrap());}
+        if self.is_suffix(b":i8") {self.value = ValueRef{anchor: self.anchor(), value: Value::i8(i.to_i8().unwrap())};}
+        else if self.is_suffix(b":i16") {self.value = ValueRef{anchor: self.anchor(), value: Value::i16(i.to_i16().unwrap())};}
+        else if self.is_suffix(b":i32") {self.value = ValueRef{anchor: self.anchor(), value: Value::i32(i.to_i32().unwrap())};}
+        else if self.is_suffix(b":i64") {self.value = ValueRef{anchor: self.anchor(), value: Value::i64(i.to_i64().unwrap())};}
+        else if self.is_suffix(b":u8") {self.value = ValueRef{anchor: self.anchor(), value: Value::u8(i.to_u8().unwrap())};}
+        else if self.is_suffix(b":u16") {self.value = ValueRef{anchor: self.anchor(), value: Value::u16(i.to_u16().unwrap())};}
+        else if self.is_suffix(b":u32") {self.value = ValueRef{anchor: self.anchor(), value: Value::u32(i.to_u32().unwrap())};}
+        else if self.is_suffix(b":u64") {self.value = ValueRef{anchor: self.anchor(), value: Value::u64(i.to_u64().unwrap())};}
+        else if self.is_suffix(b":char") {self.value = ValueRef{anchor: self.anchor(), value: Value::char(i.to_u8().unwrap() as char)};}
+        else if self.is_suffix(b":isize") {self.value = ValueRef{anchor: self.anchor(), value: Value::isize(i.to_isize().unwrap())};}
+        else if self.is_suffix(b":usize") {self.value = ValueRef{anchor: self.anchor(), value: Value::usize(i.to_usize().unwrap())};}
+        else if self.is_suffix(b":f32") {self.value = ValueRef{anchor: self.anchor(), value: Value::f32(i.to_f32().unwrap())};}
+        else if self.is_suffix(b":f64") {self.value = ValueRef{anchor: self.anchor(), value: Value::f64(i.to_f64().unwrap())};}
         else {return Err(anyhow!("ParserInvalidIntegerSuffix"));} //ParserInvalidIntegerSuffix
 
         return Ok(true)
@@ -593,9 +594,9 @@ impl <'a>LexerParser<'a> {
             return Ok(false);
         }
 
-        if let Value::f64(i) = self.value {
-            if self.is_suffix(b":f32") {}
-            else if self.is_suffix(b":f64") {}
+        if let Value::f64(i) = self.value.value {
+            if self.is_suffix(b":f32") {self.value = ValueRef{anchor: self.anchor(), value: Value::f32(i.to_f32().unwrap())};}
+            else if self.is_suffix(b":f64") {self.value = ValueRef{anchor: self.anchor(), value: Value::f64(i.to_f64().unwrap())};}
             else {return Err(anyhow!("ParserInvalidRealSuffix"));}
         } else {
             return Err(anyhow!("TODO"));
@@ -608,25 +609,24 @@ impl <'a>LexerParser<'a> {
         if !number.parse(&self.source, &mut cend) || cend == self.cursor || cend > self.eof {return Ok(false);}
         self.next_cursor = cend;
         if number.is_real() {
-            self.value = Value::f64(number.as_double() as f64);
-            self.value.anchor();
+            self.value = ValueRef{anchor: self.anchor(), value: Value::f64(number.as_double() as f64)};
         } else if number.is_signed() {
             let val = number.as_int64();
             if val >= -0x80000000 && val <= 0x7fffffff {
-                self.value = Value::i32(val as i32);
+                self.value = ValueRef{anchor: self.anchor(), value: Value::i32(val as i32)};
             } else {
-                self.value = Value::i64(val as i64);
+                self.value = ValueRef{anchor: self.anchor(), value: Value::i64(val as i64)};
             }
         } else {
             let val = number.as_uint64();
             if val <= 0x7fffffff {
-                self.value = Value::i32(val as i32)
+                self.value = ValueRef{anchor: self.anchor(), value: Value::i32(val as i32)};
             } else if val <= 0xffffffff {
-                self.value = Value::u32(val as u32)
+                self.value = ValueRef{anchor: self.anchor(), value: Value::u32(val as u32)};
             } else if val <= 0x7fffffffffffffff {
-                self.value = Value::i64(val as i64)
+                self.value = ValueRef{anchor: self.anchor(), value: Value::i64(val as i64)};
             } else {
-                self.value = Value::u64(val as u64)
+                self.value = ValueRef{anchor: self.anchor(), value: Value::u64(val as u64)};
             }
         }
         if cend == self.eof || self.source[cend].is_ascii_whitespace() || is_token_terminator(self.source[cend]) {
@@ -639,7 +639,7 @@ impl <'a>LexerParser<'a> {
         self.next_token();
         self.read_symbol()?;
         self.lineno = _lineno; self.line = _line; self.cursor = _cursor;
-        if self.value != Value::None {
+        if self.value.value != Value::None {
             return Ok(self.select_integer_suffix()?);
         } else {
             return Ok(false)
@@ -750,17 +750,41 @@ impl <'a>LexerParser<'a> {
     //    return (*self.value).clone()
     //}
     //fn get() {}
-    fn parse_list() {
+    fn parse_list(&mut self, end_token: Token) -> Result<()> {
+        let start_anchor = self.anchor();
+
+        self.read_token()?;
+
+        loop {
+            if self.token == end_token {
+                break;
+            } else if self.token == Token::tok_escape {
+                let column = self.column();
+                self.read_token()?;
+                //self.list.append(self.parse_naked(column, end_token));
+            } else if self.token == Token::tok_eof {
+                //SCOPES_TRACE_PARSER(this->anchor());
+                //SCOPES_ERROR(ParserUnclosedOpenBracket, start_anchor);
+                return Err(anyhow!("ParserUnclosedOpenBracket")) //TODO not sure
+            } else if self.token == Token::tok_statement {
+                //self.list.split(this->anchor());
+                self.read_token()?;
+            } else {
+                //self.list.append(self.parse_any());
+                self.read_token()?;
+            }
+        }
+
+        return Ok(())
+    }
+    fn parse_prefix_string(&self) {
 
     }
-    fn parse_prefix_string() {
+    fn parse_any(&self) {
 
     }
-    fn parse_any() {
-
-    }
-    fn parse_naked() {
-
+    fn parse_naked(&self, column: usize, end_token: Token) -> Value {
+        todo!()
     }
     fn parse() {
 

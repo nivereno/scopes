@@ -5,11 +5,13 @@ use bimap::BiMap;
 use num;
 use crate::{symbol::{Symbol, KnownSymbol}, timer::Timer};
 
+mod anchor;
 mod symbol;
 mod boot;
 mod timer;
 mod lexerparser;
 mod valueref;
+mod Anchor;
 
 fn main() {
     let args = std::env::args();

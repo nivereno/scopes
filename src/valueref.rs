@@ -1,3 +1,5 @@
+use crate::Anchor;
+
 //#[derive(Clone)]
 //pub struct Value<T: Sized>(pub T);
 #[derive(PartialEq)]
@@ -16,6 +18,10 @@ pub enum Value {
     f32(f32),
     f64(f64),
     None
+}
+pub struct ValueRef {
+    pub value: Value,
+    pub anchor: Anchor::Anchor,
 }
 enum ret {
     i8,
