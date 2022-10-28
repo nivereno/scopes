@@ -2,9 +2,8 @@ use core::time;
 use std::{collections::HashMap, thread};
 
 use bimap::BiMap;
-
+use num;
 use crate::{symbol::{Symbol, KnownSymbol}, timer::Timer};
-
 
 mod symbol;
 mod boot;

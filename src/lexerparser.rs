@@ -1,8 +1,10 @@
 use std::{iter::{Peekable, Map}, collections::{hash_map, HashMap}, str::Chars, fs::File, io::Read, any::Any, fmt::Display, f64::{NAN, INFINITY}};
 use anyhow::{anyhow, Result, Ok};
+use num::{Num, NumCast, ToPrimitive};
 use crate::{symbol::{Symbol, SymbolMap}, valueref::{Value}};
 use crate::lexerparser;
 use crate::valueref;
+use crate::num;
 
 pub struct NumberParser {
     flags: u16,
@@ -542,29 +544,48 @@ impl <'a>LexerParser<'a> {
     fn has_suffix(&self) -> bool {
         return self.string_len >= 1 && self.source[self.string] == b':'
     }
-    fn select_integer_suffix(&mut self) -> Result<bool> {
+    fn select_integer_suffix(&mut self) -> Result<bool> { //TODO maybe replace helper with a macro... A wonky implimentation(Might be more efficient to use unsafe/union)
         if !self.has_suffix() {
             return Ok(false);
         }
+        //if let Value::isize(i) = self.value {
+            //} else {
+        //    return Err(anyhow!("TODO"));
+        //}
+        match self.value {
+            Value::f64(i) => return self.select_integer_suffix_helper(i),
+            Value::f32(i) => return self.select_integer_suffix_helper(i),
+            Value::i64(i) => return self.select_integer_suffix_helper(i),
+            Value::i32(i) => return self.select_integer_suffix_helper(i),
+            Value::i16(i) => return self.select_integer_suffix_helper(i),
+            Value::i8(i) => return self.select_integer_suffix_helper(i),
+            Value::u64(i) => return self.select_integer_suffix_helper(i),
+            Value::u32(i) => return self.select_integer_suffix_helper(i),
+            Value::u16(i) => return self.select_integer_suffix_helper(i),
+            Value::u8(i) => return self.select_integer_suffix_helper(i),
+            Value::char(i) => return self.select_integer_suffix_helper(i as u8),
+            Value::isize(i) => return self.select_integer_suffix_helper(i),
+            Value::usize(i) => return self.select_integer_suffix_helper(i),
+            _ => return Err(anyhow!("TODO")),
+    }
         
-        if let Value::isize(i) = self.value {
-            if self.is_suffix(b":i8") {self.value.anchor(); self.value = Value::i8(i as i8);}
-            else if self.is_suffix(b":i16") {self.value.anchor(); self.value = Value::i16(i as i16);}
-            else if self.is_suffix(b":i32") {self.value.anchor(); self.value = Value::i32(i as i32);}
-            else if self.is_suffix(b":i64") {self.value.anchor(); self.value = Value::i64(i as i64);}
-            else if self.is_suffix(b":u8") {self.value.anchor(); self.value = Value::u8(i as u8);}
-            else if self.is_suffix(b":u16") {self.value.anchor(); self.value = Value::u16(i as u16);}
-            else if self.is_suffix(b":u32") {self.value.anchor(); self.value = Value::u32(i as u32);}
-            else if self.is_suffix(b":u64") {self.value.anchor(); self.value = Value::u64(i as u64);}
-            else if self.is_suffix(b":char") {self.value.anchor(); self.value = Value::char(i as u8 as char);}
-            else if self.is_suffix(b":isize") {self.value.anchor(); self.value = Value::isize(i as isize);}
-            else if self.is_suffix(b":usize") {self.value.anchor(); self.value = Value::usize(i as usize);}
-            else if self.is_suffix(b":f32") {self.value.anchor(); self.value = Value::f32(i as f32);}
-            else if self.is_suffix(b":f64") {self.value.anchor(); self.value = Value::f64(i as f64);}
-            else {return Err(anyhow!("ParserInvalidIntegerSuffix"));} //ParserInvalidIntegerSuffix
-        } else {
-            return Err(anyhow!("TODO"));
-        }
+    }
+    fn select_integer_suffix_helper<T: ToPrimitive>(&mut self, i: T) -> Result<bool> { //TODO switch to a match, probably invert the is_suffix
+        if self.is_suffix(b":i8") {self.value.anchor(); self.value = Value::i8(i.to_i8().unwrap());}
+        else if self.is_suffix(b":i16") {self.value.anchor(); self.value = Value::i16(i.to_i16().unwrap());}
+        else if self.is_suffix(b":i32") {self.value.anchor(); self.value = Value::i32(i.to_i32().unwrap());}
+        else if self.is_suffix(b":i64") {self.value.anchor(); self.value = Value::i64(i.to_i64().unwrap());}
+        else if self.is_suffix(b":u8") {self.value.anchor(); self.value = Value::u8(i.to_u8().unwrap());}
+        else if self.is_suffix(b":u16") {self.value.anchor(); self.value = Value::u16(i.to_u16().unwrap());}
+        else if self.is_suffix(b":u32") {self.value.anchor(); self.value = Value::u32(i.to_u32().unwrap());}
+        else if self.is_suffix(b":u64") {self.value.anchor(); self.value = Value::u64(i.to_u64().unwrap());}
+        else if self.is_suffix(b":char") {self.value.anchor(); self.value = Value::char(i.to_u8().unwrap() as char);}
+        else if self.is_suffix(b":isize") {self.value.anchor(); self.value = Value::isize(i.to_isize().unwrap());}
+        else if self.is_suffix(b":usize") {self.value.anchor(); self.value = Value::usize(i.to_usize().unwrap());}
+        else if self.is_suffix(b":f32") {self.value.anchor(); self.value = Value::f32(i.to_f32().unwrap());}
+        else if self.is_suffix(b":f64") {self.value.anchor(); self.value = Value::f64(i.to_f64().unwrap());}
+        else {return Err(anyhow!("ParserInvalidIntegerSuffix"));} //ParserInvalidIntegerSuffix
+
         return Ok(true)
     }
     fn select_real_suffix(&mut self) -> Result<bool> {
