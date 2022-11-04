@@ -3,12 +3,12 @@ use std::{fmt, collections::hash_map::DefaultHasher, hash::{Hash, Hasher}, threa
 use bimap::BiMap;
 
 pub struct SymbolMap {
-    map: BiMap<String, Symbol>,
-    num_symbols :u64 
+    pub map: BiMap<String, Symbol>,
+    pub num_symbols :u64 
 }
 
 impl SymbolMap {
-    fn get_mapped_symbol_name(&mut self, id: &Symbol) -> Option<&String> {
+    pub fn get_mapped_symbol_name(&mut self, id: &Symbol) -> Option<&String> {
         let name = self.map.get_by_right(id);
         return name
     }

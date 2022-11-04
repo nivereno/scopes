@@ -360,8 +360,8 @@ struct LexerParser<'a> {
     string_len: usize,
 
     value: ValueRef,
-    list: &'a mut Vec<LexerParser<'a>>
-    //prefix_Symbol_map: HashMap<Symbol, ConstIntRef>https
+    list: &'a mut Vec<ValueRef>,
+    prefix_symbol_map: &'a mut HashMap<Symbol, ValueRef>
 }
 fn is_token_terminator(char: u8) -> bool {
     match char {
@@ -390,7 +390,7 @@ impl <'a>LexerParser<'a> {
         return Ok(())
     }
 
-    fn new(_list: &'a mut Vec<LexerParser<'a>>, source: &'a Vec<u8>, _file: &'a mut File, offset: usize, length: usize) -> LexerParser<'a> {
+    fn new(_list: &'a mut Vec<ValueRef>, source: &'a Vec<u8>, _file: &'a mut File, offset: usize, length: usize, _prefix_symbol_map: &'a mut HashMap<Symbol, ValueRef>) -> LexerParser<'a> {
         //let mut source = Vec::new();
         //_file.read_to_end(&mut source);
         let input_stream = 0 + offset;
@@ -401,7 +401,7 @@ impl <'a>LexerParser<'a> {
             end = source.len();
         }
 
-        return LexerParser { token: Token::tok_eof, base_offset: offset, file: _file, source: source, input_stream: input_stream, eof: end, cursor: input_stream, next_cursor: input_stream, lineno: 1, next_lineno: 1, line: input_stream, next_line: input_stream, string: 0, string_len: 0, value: ValueRef{value: Value::None, anchor: Anchor::Anchor{}}, list: _list }
+        return LexerParser { token: Token::tok_eof, base_offset: offset, file: _file, source: source, input_stream: input_stream, eof: end, cursor: input_stream, next_cursor: input_stream, lineno: 1, next_lineno: 1, line: input_stream, next_line: input_stream, string: 0, string_len: 0, value: ValueRef{value: Value::None, anchor: Anchor::Anchor{}}, list: _list, prefix_symbol_map: _prefix_symbol_map }
     }
     fn offset(&self) -> usize {
         return self.base_offset + (self.cursor - self.input_stream)
@@ -750,44 +750,196 @@ impl <'a>LexerParser<'a> {
     //    return (*self.value).clone()
     //}
     //fn get() {}
-    fn parse_list(&mut self, end_token: Token) -> Result<()> {
+    fn parse_list(&mut self, map: &mut SymbolMap, end_token: &Token) -> Result<()> {
         let start_anchor = self.anchor();
 
         self.read_token()?;
 
         loop {
-            if self.token == end_token {
+            if self.token == *end_token {
                 break;
             } else if self.token == Token::tok_escape {
                 let column = self.column();
                 self.read_token()?;
-                //self.list.append(self.parse_naked(column, end_token));
+                let v = self.parse_naked(map, column, end_token)?;
+                self.list.push(v);
             } else if self.token == Token::tok_eof {
-                //SCOPES_TRACE_PARSER(this->anchor());
-                //SCOPES_ERROR(ParserUnclosedOpenBracket, start_anchor);
-                return Err(anyhow!("ParserUnclosedOpenBracket")) //TODO not sure
+                return Err(anyhow!("ParserUnclosedOpenBracket"))
             } else if self.token == Token::tok_statement {
                 //self.list.split(this->anchor());
                 self.read_token()?;
             } else {
-                //self.list.append(self.parse_any());
+                let v = &mut self.parse_any(map)?;
+                self.list.append(v);
                 self.read_token()?;
             }
         }
 
         return Ok(())
     }
-    fn parse_prefix_string(&self) {
-
+    fn parse_prefixed_string(&self) -> Result<ValueRef> {
+        assert!(self.token != Token::tok_eof);
+        let anchor = self.anchor();
+        match self.token {
+            Token::tok_string =>  return Ok(ValueRef{anchor: self.anchor(), value: Value::string(self.get_unescaped_string())}),
+            Token::tok_block_string => return Ok(ValueRef{anchor: self.anchor(), value: Value::string(self.get_block_string())}),
+            _ => {},
+        }
+        return Err(anyhow!("ParserUnexpectedToken"))
     }
-    fn parse_any(&self) {
-
+    fn parse_any(&mut self, map: &mut SymbolMap) -> Result<Vec<ValueRef>> {
+        assert!(self.token != Token::tok_eof);
+        let anchor = self.anchor();
+        match self.token {
+            //Token::tok_open => return ValueRef{anchor: anchor, ConstPointer::list_from(self.parse_list(tok_close)?)},
+            //Token::tok_square_open => return ValueRef{anchor: anchor, ConstPointer::list_from(List::from(ref(anchor, ConstInt::symbol_from(Symbol(SYM_SquareList))), self.parse_list(tok_square_close)?)))},
+            //Token::tok_curly_open => return ValueRef{anchor: anchor, ConstPointer::list_from(List::from(ref(anchor, ConstInt::symbol_from(Symbol(SYM_CurlyList))), self.parse_list(tok_curly_close)?)))},
+            Token::tok_close | Token::tok_square_close | Token::tok_curly_close => return Err(anyhow!("ParserStrayClosingBracket")),
+            Token::tok_string => return Ok(vec!(ValueRef{anchor: anchor, value: Value::string(self.get_string())})),
+            Token::tok_block_string => return Ok(vec!(ValueRef{anchor: anchor, value: Value::string(self.get_block_string())})),
+            Token::tok_symbol => return Ok(vec!(ValueRef{anchor: anchor, value: Value::symbol(self.get_symbol(map))})),
+            Token::tok_string_prefix => {
+                let sym = self.get_symbol(map).clone();
+                // cache existing symbols
+                let wrapped: ValueRef;
+                if let Some(name) = self.prefix_symbol_map.get(&sym).clone() {
+                    wrapped = name.clone();
+                } else {
+                    let name = map.get_mapped_symbol_name(&sym).unwrap().clone();
+                    let pref = map.add_symbol(format!("{}{}", "prefix:", name)).clone();
+                    let wrappedsym = ValueRef{anchor: anchor, value: Value::symbol(pref)};
+                    self.prefix_symbol_map.insert(sym, wrappedsym.clone());
+                    wrapped = wrappedsym;
+                }
+                self.read_token()?;
+                let prefix = self.parse_prefixed_string()?;
+                return Ok(vec!(prefix, wrapped))
+            },
+            Token::tok_number => return Ok(vec!(self.value.clone())),
+            Token::tok_syntax_quote => {
+                self.read_token()?;
+                if self.token == Token::tok_eof {
+                    return Err(anyhow!("ParserUnterminatedQuote"));
+                }
+                //return ValueRef(anchor, ConstPointer::list_from(List::from(ref(anchor, ConstInt::symbol_from(Symbol(KW_SyntaxQuote))), SCOPES_GET_RESULT(parse_any()))));
+            },
+            Token::tok_ast_quote => {
+                self.read_token()?;
+                if self.token == Token::tok_eof {
+                    return Err(anyhow!("ParserUnterminatedQuote"));
+                }
+                //return ValueRef(anchor, ConstPointer::list_from(List::from(ref(anchor, ConstInt::symbol_from(Symbol(KW_ASTQuote))), SCOPES_GET_RESULT(parse_any()))));
+            },
+            _ => {},
+        }
+        /*
+        SCOPES_TRACE_PARSER(this->anchor());
+        SCOPES_ERROR(ParserUnexpectedToken,
+            this->cursor[0], (int)this->cursor[0]);
+        */
+        return Err(anyhow!("ParserUnexpectedToken"));
     }
-    fn parse_naked(&self, column: usize, end_token: Token) -> Value {
+    fn parse_naked(&mut self, map: &mut SymbolMap, column: usize, end_token: &Token) -> Result<ValueRef> {
+        let mut lineno = self.lineno;
+        let mut escape = false;
+        let mut subcolumn = 0;
+        let anchor = self.anchor();
+        let mut unwrap_single = true;
+
+        while self.token != Token::tok_eof {
+            if self.token == *end_token {
+                break;
+            } else if self.token == Token::tok_escape {
+                escape = true;
+                self.read_token()?;
+                if self.lineno <= lineno {
+                    return Err(anyhow!("ParserStrayEscapeToken"));
+                }
+                lineno = self.lineno;
+            } else if self.lineno > lineno {
+                if subcolumn == 0 {
+                    subcolumn = self.column();
+                } else if self.column() != subcolumn {
+                    return Err(anyhow!("ParserIndentationMismatch"));
+                }
+                if column != subcolumn {
+                    if (column + 4) != subcolumn {
+                        return Err(anyhow!("ParserBadIndentationLevel"));
+                    }
+                }
+    
+                escape = false;
+                lineno = self.lineno;
+                // keep adding elements while we're in the same line
+                while self.token != Token::tok_eof && self.token != *end_token && self.lineno == lineno {
+                    let v = self.parse_naked(map, subcolumn, end_token)?;
+                    self.list.push(v);
+                }
+            } else if self.token == Token::tok_statement {
+                self.read_token()?;
+                unwrap_single = false;
+                if !self.list.is_empty() {
+                    break;
+                }
+            } else {
+                let v = &mut self.parse_any(map)?;
+                self.list.append(v);
+                lineno = self.next_lineno;
+                self.read_token()?;
+            }
+            if !escape || self.lineno > lineno && self.column() <= column {
+                break;
+            }
+        }
+        /*
+        auto result = builder.get_result();
+        if (unwrap_single && result && List::count(result) == 1) {
+            return result->at;
+        } else {
+            return ValueRef(anchor, ConstPointer::list_from(result));
+        }
+        */
         todo!()
     }
-    fn parse() {
+    fn parse(&mut self, map: &mut SymbolMap) -> Result<()> {
+        self.read_token()?;
+        let mut lineno = 0;
+        let anchor = self.anchor();
+        let mut escape = false;
 
+        while self.token != Token::tok_eof {
+            if self.token == Token::tok_none {
+                break;
+            } else if self.token == Token::tok_escape {
+                escape = true;
+                self.read_token()?;
+                if self.lineno <= lineno {
+                    return Err(anyhow!("ParserStrayEscapeToken"));
+                }
+                lineno = self.lineno;
+            } else if self.lineno > lineno {
+                if self.column() != 1 {
+                    return Err(anyhow!("ParserIndentationMismatch"));
+                }
+    
+                escape = false;
+                lineno = self.lineno;
+                // keep adding elements while we're in the same line
+                while self.token != Token::tok_eof && self.token != Token::tok_none && self.lineno == lineno {
+                    let v = self.parse_naked(map, 1, &Token::tok_none)?;
+                    self.list.push(v);
+                }
+            } else if self.token == Token::tok_statement {
+                return Err(anyhow!("ParserStrayStatementToken"));
+            } else {
+                let v = &mut self.parse_any(map)?;
+                self.list.append(v);
+                lineno = self.next_lineno;
+                self.read_token()?;
+            }
+        }
+
+        todo!()
     }
 
 }

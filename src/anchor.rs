@@ -1,7 +1,7 @@
 use crate::symbol::Symbol;
 
 
-
+#[derive(PartialEq, Clone)]
 pub struct Anchor {
 
 }
