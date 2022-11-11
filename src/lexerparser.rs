@@ -315,7 +315,7 @@ enum RN {
 
 struct ListBuilder<T> {
     prev: List<T>,
-    eol: Link<T>
+    eol: List<T>
 }
 
 #[derive(Clone, PartialEq)]
@@ -404,7 +404,7 @@ impl <'a>LexerParser<'a> {
             end = source.len();
         }
 
-        return LexerParser { token: Token::tok_eof, base_offset: offset, file: _file, source: source, input_stream: input_stream, eof: end, cursor: input_stream, next_cursor: input_stream, lineno: 1, next_lineno: 1, line: input_stream, next_line: input_stream, string: 0, string_len: 0, value: ValueRef{value: Value::None, anchor: Anchor::Anchor{}}, list_builder: ListBuilder{prev: List::new(), eol: ptr::null_mut()}, prefix_symbol_map: _prefix_symbol_map }
+        return LexerParser { token: Token::tok_eof, base_offset: offset, file: _file, source: source, input_stream: input_stream, eof: end, cursor: input_stream, next_cursor: input_stream, lineno: 1, next_lineno: 1, line: input_stream, next_line: input_stream, string: 0, string_len: 0, value: ValueRef{value: Value::None, anchor: Anchor::Anchor{}}, list_builder: ListBuilder{prev: List::new(), eol: List::new()}, prefix_symbol_map: _prefix_symbol_map }
     }
     fn offset(&self) -> usize {
         return self.base_offset + (self.cursor - self.input_stream)
@@ -968,24 +968,25 @@ impl <'a>LexerParser<'a> {
 }
 
 impl <T>ListBuilder<T> {
-    fn append(&self) {
-
+    fn append(&mut self, list: Link<T>) {
+    
     }
     fn is_empty(&self) -> bool {
-        //return self.prev == null_mut()
-        todo!()
+        return self.prev.head.is_null()
     }
     fn is_expression_empty(&self) -> bool {
-        //return self.prev == null_mut()
-        todo!()
+        return self.prev.head.is_null()
     }
-    fn reset_start(&self) {
-        //self.eol = self.prev;
+    fn reset_start(mut self) {
+        self.eol = self.prev;
+        self.prev = List::new();
     }
-    fn split(&self) {
-
+    fn split(mut self) {
+        self.prev.reverse();
+        self.reset_start();
     }
-    fn get_result(&self) -> List<T> {
-        todo!()
+    fn get_result(&mut self) -> &mut List<T> {
+        self.prev.reverse();
+        return &mut self.prev;
     }
 }

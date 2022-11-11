@@ -1,8 +1,8 @@
 use std::ptr;
 
 pub struct List<T> {
-    head: Link<T>,
-    count: usize
+    pub head: Link<T>,
+    pub count: usize
 }
 
 pub type Link<T> = *mut Node<T>;
@@ -40,7 +40,7 @@ impl<T> List<T> {
             self.count += 1;
         }
     }
-    pub fn reverse(&mut self) -> *mut Node<T> {
+    pub fn reverse(&mut self) {
         unsafe {
             let mut prev = std::ptr::null_mut();
             let mut curr = self.head;
@@ -51,11 +51,25 @@ impl<T> List<T> {
                 prev = curr;
                 curr = next;
             }
-            return prev;
+            self.head = prev;
         }
     }
-    pub fn append(&mut self, list: List<T>) {
-
+    pub fn push_list(&mut self, list: Link<T>) {
+        if list.is_null() {
+            return
+        }
+        unsafe {
+        let mut tail = (*list).next;
+        if tail.is_null() {
+            (*list).next = self.head;
+        } else {
+            while !(*tail).next.is_null() {
+                tail = (*tail).next;
+            }
+            (*tail).next = self.head;
+        }
+        self.head = list;
+    }
     }
     pub fn pop(&mut self) -> Option<T> {
         unsafe {
