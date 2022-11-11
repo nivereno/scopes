@@ -774,7 +774,7 @@ impl <'a>LexerParser<'a> {
                 self.read_token()?;
             } else {
                 let v = self.parse_any(map)?;
-                //self.list_builder.append(v);
+                self.list_builder.append(v);
                 self.read_token()?;
             }
         }
@@ -906,7 +906,7 @@ impl <'a>LexerParser<'a> {
                 }
             } else {
                 let v = self.parse_any(map)?;
-                //self.list_builder.append(v);
+                self.list_builder.append(v);
                 lineno = self.next_lineno;
                 self.read_token()?;
             }
@@ -956,7 +956,7 @@ impl <'a>LexerParser<'a> {
                 return Err(anyhow!("ParserStrayStatementToken"));
             } else {
                 let v = self.parse_any(map)?;
-                //self.list_builder.append(v);
+                self.list_builder.append(v);
                 lineno = self.next_lineno;
                 self.read_token()?;
             }
@@ -968,8 +968,9 @@ impl <'a>LexerParser<'a> {
 }
 
 impl <T>ListBuilder<T> {
-    fn append(&mut self, list: Link<T>) {
-    
+    fn append(&mut self, mut list: List<T>) {
+        self.prev.push_list(list.head);
+        list.head = std::ptr::null_mut();
     }
     fn is_empty(&self) -> bool {
         return self.prev.head.is_null()
