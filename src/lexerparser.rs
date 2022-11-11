@@ -1,7 +1,7 @@
 use std::{iter::{Peekable, Map}, collections::{hash_map, HashMap}, str::Chars, fs::File, io::Read, any::Any, fmt::Display, f64::{NAN, INFINITY}, ptr::{self, null, null_mut}};
 use anyhow::{anyhow, Result, Ok};
 use num::{Num, NumCast, ToPrimitive};
-use crate::{symbol::{Symbol, SymbolMap}, valueref::{Value, ValueRef}, Anchor, list::{List, Link}};
+use crate::{symbol::{Symbol, SymbolMap, KnownSymbol}, valueref::{Value, ValueRef}, Anchor, list::{List, Link}};
 use crate::lexerparser;
 use crate::valueref;
 use crate::num;
@@ -315,7 +315,7 @@ enum RN {
 
 struct ListBuilder<T> {
     prev: List<T>,
-    eol: List<T>
+    eol: Link<T>
 }
 
 #[derive(Clone, PartialEq)]
@@ -344,7 +344,7 @@ fn get_token_name() {
 
 }
 
-struct LexerParser<'a> {
+pub struct LexerParser<'a> {
     token: Token,
     base_offset: usize,
     file: &'a File,
@@ -393,7 +393,7 @@ impl <'a>LexerParser<'a> {
         return Ok(())
     }
 
-    fn new(source: &'a Vec<u8>, _file: &'a mut File, offset: usize, length: usize, _prefix_symbol_map: &'a mut HashMap<Symbol, ValueRef>) -> LexerParser<'a> {
+    pub fn new(source: &'a Vec<u8>, _file: &'a mut File, offset: usize, length: usize, _prefix_symbol_map: &'a mut HashMap<Symbol, ValueRef>) -> LexerParser<'a> {
         //let mut source = Vec::new();
         //_file.read_to_end(&mut source);
         let input_stream = 0 + offset;
@@ -404,7 +404,7 @@ impl <'a>LexerParser<'a> {
             end = source.len();
         }
 
-        return LexerParser { token: Token::tok_eof, base_offset: offset, file: _file, source: source, input_stream: input_stream, eof: end, cursor: input_stream, next_cursor: input_stream, lineno: 1, next_lineno: 1, line: input_stream, next_line: input_stream, string: 0, string_len: 0, value: ValueRef{value: Value::None, anchor: Anchor::Anchor{}}, list_builder: ListBuilder{prev: List::new(), eol: List::new()}, prefix_symbol_map: _prefix_symbol_map }
+        return LexerParser { token: Token::tok_eof, base_offset: offset, file: _file, source: source, input_stream: input_stream, eof: end, cursor: input_stream, next_cursor: input_stream, lineno: 1, next_lineno: 1, line: input_stream, next_line: input_stream, string: 0, string_len: 0, value: ValueRef{value: Value::None, anchor: Anchor::Anchor::from(Symbol(8), 0, 0, 0)}, list_builder: ListBuilder{prev: List::new(), eol: std::ptr::null_mut()}, prefix_symbol_map: _prefix_symbol_map }
     }
     fn offset(&self) -> usize {
         return self.base_offset + (self.cursor - self.input_stream)
@@ -708,7 +708,8 @@ impl <'a>LexerParser<'a> {
     }
     fn get_symbol(&self, map: &mut SymbolMap) -> Symbol {
         let dest: Vec<u8> = self.source[self.string.. self.string_len].to_vec();
-        return SymbolMap::add_symbol(map, String::from_utf8(dest).unwrap())
+        let result = String::from_utf8(dest).unwrap();
+        return map.add_symbol(result)
     }
     fn get_string(&self) -> String {
         let dest: Vec<u8> = self.source[self.string + 1.. self.string_len - 2].to_vec();
@@ -754,7 +755,7 @@ impl <'a>LexerParser<'a> {
     //}
     //fn get() {}
     
-    fn parse_list(&mut self, map: &mut SymbolMap, end_token: &Token) -> Result<()> {
+    fn parse_list(&mut self, map: &mut SymbolMap, end_token: &Token) -> Result<List<ValueRef>> {
         let start_anchor = self.anchor();
 
         self.read_token()?;
@@ -766,11 +767,11 @@ impl <'a>LexerParser<'a> {
                 let column = self.column();
                 self.read_token()?;
                 let v = self.parse_naked(map, column, end_token)?;
-                //self.list_builder.push(v);
+                self.list_builder.append(v);
             } else if self.token == Token::tok_eof {
                 return Err(anyhow!("ParserUnclosedOpenBracket"))
             } else if self.token == Token::tok_statement {
-                //self.list_builder.split(self.anchor());
+                self.list_builder.split();//self.anchor());
                 self.read_token()?;
             } else {
                 let v = self.parse_any(map)?;
@@ -779,7 +780,7 @@ impl <'a>LexerParser<'a> {
             }
         }
 
-        return Ok(())
+        return Ok(self.list_builder.get_result())
     }
     fn parse_prefixed_string(&self) -> Result<ValueRef> {
         assert!(self.token != Token::tok_eof);
@@ -795,9 +796,17 @@ impl <'a>LexerParser<'a> {
         assert!(self.token != Token::tok_eof);
         let anchor = self.anchor();
         match self.token {
-            //Token::tok_open => return ValueRef{anchor: anchor, ConstPointer::list_from(self.parse_list(tok_close)?)},
-            //Token::tok_square_open => return ValueRef{anchor: anchor, ConstPointer::list_from(List::from(ref(anchor, ConstInt::symbol_from(Symbol(SYM_SquareList))), self.parse_list(tok_square_close)?)))},
-            //Token::tok_curly_open => return ValueRef{anchor: anchor, ConstPointer::list_from(List::from(ref(anchor, ConstInt::symbol_from(Symbol(SYM_CurlyList))), self.parse_list(tok_curly_close)?)))},
+            Token::tok_open => return Ok(self.parse_list(map, &Token::tok_close)?),
+            Token::tok_square_open => {
+                let mut result = self.parse_list(map, &Token::tok_square_close)?;
+                result.push(ValueRef{anchor: anchor, value: Value::symbol(Symbol(KnownSymbol::SYM_SquareList as u64))});
+                return Ok(result)
+            },
+            Token::tok_curly_open => {
+                let mut result = self.parse_list(map, &Token::tok_curly_close)?;
+                result.push(ValueRef{anchor: anchor, value: Value::symbol(Symbol(KnownSymbol::SYM_CurlyList as u64))});
+                return Ok(result)
+            },
             Token::tok_close | Token::tok_square_close | Token::tok_curly_close => return Err(anyhow!("ParserStrayClosingBracket")),
             Token::tok_string => {
                 let mut ret = List::new();
@@ -844,14 +853,18 @@ impl <'a>LexerParser<'a> {
                 if self.token == Token::tok_eof {
                     return Err(anyhow!("ParserUnterminatedQuote"));
                 }
-                //return ValueRef(anchor, ConstPointer::list_from(List::from(ref(anchor, ConstInt::symbol_from(Symbol(KW_SyntaxQuote))), SCOPES_GET_RESULT(parse_any()))));
+                let mut result = self.parse_any(map)?;
+                result.push(ValueRef{anchor: anchor, value: Value::symbol(Symbol(KnownSymbol::KW_SyntaxQuote as u64))});
+                return Ok(result);
             },
             Token::tok_ast_quote => {
                 self.read_token()?;
                 if self.token == Token::tok_eof {
                     return Err(anyhow!("ParserUnterminatedQuote"));
                 }
-                //return ValueRef(anchor, ConstPointer::list_from(List::from(ref(anchor, ConstInt::symbol_from(Symbol(KW_ASTQuote))), SCOPES_GET_RESULT(parse_any()))));
+                let mut result = self.parse_any(map)?;
+                result.push(ValueRef{anchor: anchor, value: Value::symbol(Symbol(KnownSymbol:: KW_ASTQuote as u64))});
+                return Ok(result);
             },
             _ => {},
         }
@@ -862,7 +875,7 @@ impl <'a>LexerParser<'a> {
         */
         return Err(anyhow!("ParserUnexpectedToken"));
     }
-    fn parse_naked(&mut self, map: &mut SymbolMap, column: usize, end_token: &Token) -> Result<ValueRef> {
+    fn parse_naked(&mut self, map: &mut SymbolMap, column: usize, end_token: &Token) -> Result<List<ValueRef>> {
         let mut lineno = self.lineno;
         let mut escape = false;
         let mut subcolumn = 0;
@@ -896,7 +909,7 @@ impl <'a>LexerParser<'a> {
                 // keep adding elements while we're in the same line
                 while self.token != Token::tok_eof && self.token != *end_token && self.lineno == lineno {
                     let v = self.parse_naked(map, subcolumn, end_token)?;
-                    //self.list_builder.push(v);
+                    self.list_builder.append(v);
                 }
             } else if self.token == Token::tok_statement {
                 self.read_token()?;
@@ -914,17 +927,11 @@ impl <'a>LexerParser<'a> {
                 break;
             }
         }
-        /*
-        auto result = builder.get_result();
-        if (unwrap_single && result && List::count(result) == 1) {
-            return result->at;
-        } else {
-            return ValueRef(anchor, ConstPointer::list_from(result));
-        }
-        */
-        todo!()
+
+        let result = self.list_builder.get_result();
+        return Ok(result);
     }
-    fn parse(&mut self, map: &mut SymbolMap) -> Result<()> {
+    pub fn parse(&mut self, map: &mut SymbolMap) -> Result<List<ValueRef>> {
         self.read_token()?;
         let mut lineno = 0;
         let anchor = self.anchor();
@@ -950,7 +957,7 @@ impl <'a>LexerParser<'a> {
                 // keep adding elements while we're in the same line
                 while self.token != Token::tok_eof && self.token != Token::tok_none && self.lineno == lineno {
                     let v = self.parse_naked(map, 1, &Token::tok_none)?;
-                    //self.list_builder.push(v);
+                    self.list_builder.append(v);
                 }
             } else if self.token == Token::tok_statement {
                 return Err(anyhow!("ParserStrayStatementToken"));
@@ -962,7 +969,7 @@ impl <'a>LexerParser<'a> {
             }
         }
 
-        todo!()
+        return Ok(self.list_builder.get_result());
     }
 
 }
@@ -978,16 +985,16 @@ impl <T>ListBuilder<T> {
     fn is_expression_empty(&self) -> bool {
         return self.prev.head.is_null()
     }
-    fn reset_start(mut self) {
-        self.eol = self.prev;
+    fn reset_start(&mut self) {
+        self.eol = self.prev.head;
         self.prev = List::new();
     }
-    fn split(mut self) {
+    fn split(&mut self) {
         self.prev.reverse();
         self.reset_start();
     }
-    fn get_result(&mut self) -> &mut List<T> {
+    fn get_result(&mut self) -> List<T> {
         self.prev.reverse();
-        return &mut self.prev;
+        return std::mem::take(&mut self.prev);
     }
 }

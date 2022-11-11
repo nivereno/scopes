@@ -118,6 +118,11 @@ impl<T> Drop for List<T> {
         while let Some(_) = self.pop() { }
     }
 }
+impl<T> Default for List<T> {
+    fn default() -> Self {
+        List { head: ptr::null_mut(), count: 0 }     
+    }
+}
 
 impl<T> Iterator for IntoIter<T> {
     type Item = T;

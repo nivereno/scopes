@@ -1,9 +1,9 @@
 use core::time;
-use std::{collections::HashMap, thread};
+use std::{collections::HashMap, thread, fs::File};
 
 use bimap::BiMap;
 use num;
-use crate::{symbol::{Symbol, KnownSymbol}, timer::Timer};
+use crate::{symbol::{Symbol, KnownSymbol, SymbolMap}, timer::Timer, lexerparser::LexerParser};
 
 mod anchor;
 mod symbol;
@@ -15,6 +15,15 @@ mod list;
 mod Anchor;
 
 fn main() {
+
+    let mut file = File::open("S.txt").unwrap();
+    let U8vec = std::fs::read("S.txt").unwrap();
+    let mut m = HashMap::new();
+    let mut lexerparser = LexerParser::new(&U8vec, &mut file, 0, 0, &mut m);
+    let mut placeholdermap = SymbolMap{map: BiMap::new(), num_symbols: 0};
+    let list = lexerparser.parse(&mut placeholdermap).unwrap();
+
+
     let args = std::env::args();
     let mut timers = HashMap::new();
     let mut symbols = BiMap::new();
