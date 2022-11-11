@@ -26,10 +26,6 @@ pub struct ValueRef {
     pub value: Value,
     pub anchor: Anchor::Anchor,
 }
-enum ret {
-    i8,
-
-}
 impl Value {
     pub fn anchor(&self) {
 

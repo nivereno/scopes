@@ -11,6 +11,7 @@ mod boot;
 mod timer;
 mod lexerparser;
 mod valueref;
+mod list;
 mod Anchor;
 
 fn main() {
