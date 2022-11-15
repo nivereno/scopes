@@ -707,7 +707,7 @@ impl <'a>LexerParser<'a> {
         return Ok(self.token.clone())
     }
     fn get_symbol(&self, map: &mut SymbolMap) -> Symbol {
-        let dest: Vec<u8> = self.source[self.string.. self.string_len].to_vec();
+        let dest: Vec<u8> = self.source[self.string.. (self.string+self.string_len)].to_vec();
         let result = String::from_utf8(dest).unwrap();
         return map.add_symbol(result)
     }

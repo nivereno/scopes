@@ -37,6 +37,26 @@ impl Value {
 
         }
     }*/
+    pub fn print_value(&self) {
+        match self {
+            Value::i8(v) => print!("{}", v),
+            Value::i16(v) => print!("{}", v),
+            Value::i32(v) => print!("{}", v),
+            Value::i64(v) => print!("{}", v),
+            Value::u8(v) => print!("{}", v),
+            Value::u16(v) => print!("{}", v),
+            Value::u32(v) => print!("{}", v),
+            Value::u64(v) => print!("{}", v),
+            Value::char(v) => print!("{}", v),
+            Value::isize(v) => print!("{}", v),
+            Value::usize(v) => print!("{}", v),
+            Value::f32(v) => print!("{}", v),
+            Value::f64(v) => print!("{}", v),
+            Value::string(v) => print!("{}", v),
+            Value::symbol(v) => print!("{}", v),
+            Value::None => print!("None")
+        }
+    }
 }
 /*
 pub trait ValueRef {
