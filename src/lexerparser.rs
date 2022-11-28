@@ -1,11 +1,12 @@
 use std::{iter::{Peekable, Map}, collections::{hash_map, HashMap}, str::Chars, fs::File, io::Read, any::Any, fmt::Display, f64::{NAN, INFINITY}, ptr::{self, null, null_mut}};
 use anyhow::{anyhow, Result, Ok};
 use num::{Num, NumCast, ToPrimitive};
-use crate::{symbol::{Symbol, SymbolMap, KnownSymbol}, valueref::{Value, ValueRef}, Anchor, list::{List, Link}};
+use crate::{symbol::{Symbol, SymbolMap, KnownSymbol}, valueref::{Value, ValueRef}, list::{List, Link}};
 use crate::lexerparser;
 use crate::valueref;
 use crate::num;
 use crate::list;
+use crate::anchor;
 
 pub struct NumberParser {
     flags: u16,
@@ -404,7 +405,7 @@ impl <'a>LexerParser<'a> {
             end = source.len();
         }
 
-        return LexerParser { token: Token::tok_eof, base_offset: offset, file: _file, source: source, input_stream: input_stream, eof: end, cursor: input_stream, next_cursor: input_stream, lineno: 1, next_lineno: 1, line: input_stream, next_line: input_stream, string: 0, string_len: 0, value: ValueRef{value: Value::None, anchor: Anchor::Anchor::from(Symbol(8), 0, 0, 0)}, list_builder: ListBuilder{prev: List::new(), eol: std::ptr::null_mut()}, prefix_symbol_map: _prefix_symbol_map }
+        return LexerParser { token: Token::tok_eof, base_offset: offset, file: _file, source: source, input_stream: input_stream, eof: end, cursor: input_stream, next_cursor: input_stream, lineno: 1, next_lineno: 1, line: input_stream, next_line: input_stream, string: 0, string_len: 0, value: ValueRef{value: Value::None, anchor: anchor::Anchor::from(Symbol(8), 0, 0, 0)}, list_builder: ListBuilder{prev: List::new(), eol: std::ptr::null_mut()}, prefix_symbol_map: _prefix_symbol_map }
     }
     fn offset(&self) -> usize {
         return self.base_offset + (self.cursor - self.input_stream)
@@ -415,8 +416,8 @@ impl <'a>LexerParser<'a> {
     fn next_column(&self) -> usize {
         return self.next_cursor - self.next_line + 1
     }
-    fn anchor(&self) -> Anchor::Anchor {
-        return Anchor::Anchor::from(Symbol(1), self.lineno, self.column(), self.offset()); //TODO Pass in file or filepath?
+    fn anchor(&self) -> anchor::Anchor {
+        return anchor::Anchor::from(Symbol(1), self.lineno, self.column(), self.offset()); //TODO Pass in file or filepath?
         todo!()
     }
     fn next(&mut self) -> Result<u8> {
@@ -515,8 +516,8 @@ impl <'a>LexerParser<'a> {
         self.select_string();
         return Ok(())
     }
-    fn read_block(&mut self) -> Result<()> {
-        let indent = 0; //TODO platform dependent?
+    fn read_block(&mut self, indent: usize) -> Result<()> {
+        //let indent = 4; //TODO platform dependent?
         let col = self.column() + indent;
         loop {
             if self.is_eof() {
@@ -537,12 +538,12 @@ impl <'a>LexerParser<'a> {
         self.next()?;
         self.next()?;
         self.next()?;
-        self.read_block()?;
+        self.read_block(3)?;
         self.select_string();
         return Ok(())
     }
     fn read_comment(&mut self) -> Result<()> {
-        self.read_block()?;
+        self.read_block(0)?;
         return Ok(())
     }
     fn has_suffix(&self) -> bool {

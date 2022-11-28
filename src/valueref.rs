@@ -1,4 +1,4 @@
-use crate::{Anchor, symbol::Symbol};
+use crate::{anchor, symbol::Symbol};
 
 //#[derive(Clone)]
 //pub struct Value<T: Sized>(pub T);
@@ -24,7 +24,7 @@ pub enum Value {
 #[derive(PartialEq, Clone)]
 pub struct ValueRef {
     pub value: Value,
-    pub anchor: Anchor::Anchor,
+    pub anchor: anchor::Anchor,
 }
 impl Value {
     pub fn anchor(&self) {
