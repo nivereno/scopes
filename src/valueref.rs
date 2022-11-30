@@ -1,4 +1,4 @@
-use crate::{anchor, symbol::Symbol};
+use crate::{anchor, symbol::{Symbol, SymbolMap}};
 
 //#[derive(Clone)]
 //pub struct Value<T: Sized>(pub T);
@@ -37,24 +37,24 @@ impl Value {
 
         }
     }*/
-    pub fn print_value(&self) {
+    pub fn print_value(&self, map: &mut SymbolMap) {
         match self {
-            Value::i8(v) => print!("{}", v),
-            Value::i16(v) => print!("{}", v),
-            Value::i32(v) => print!("{}", v),
-            Value::i64(v) => print!("{}", v),
-            Value::u8(v) => print!("{}", v),
-            Value::u16(v) => print!("{}", v),
-            Value::u32(v) => print!("{}", v),
-            Value::u64(v) => print!("{}", v),
-            Value::char(v) => print!("{}", v),
-            Value::isize(v) => print!("{}", v),
-            Value::usize(v) => print!("{}", v),
-            Value::f32(v) => print!("{}", v),
-            Value::f64(v) => print!("{}", v),
-            Value::string(v) => print!("{}", v),
-            Value::symbol(v) => print!("{}", v),
-            Value::None => print!("None")
+            Value::i8(v) => print!("{} ", v),
+            Value::i16(v) => print!("{} ", v),
+            Value::i32(v) => print!("{} ", v),
+            Value::i64(v) => print!("{} ", v),
+            Value::u8(v) => print!("{} ", v),
+            Value::u16(v) => print!("{} ", v),
+            Value::u32(v) => print!("{} ", v),
+            Value::u64(v) => print!("{} ", v),
+            Value::char(v) => print!("{} ", v),
+            Value::isize(v) => print!("{} ", v),
+            Value::usize(v) => print!("{} ", v),
+            Value::f32(v) => print!("{} ", v),
+            Value::f64(v) => print!("{} ", v),
+            Value::string(v) => print!("{} ", v),
+            Value::symbol(v) => print!("{} ", map.get_mapped_symbol_name(v).unwrap()),
+            Value::None => print!("None ")
         }
     }
 }

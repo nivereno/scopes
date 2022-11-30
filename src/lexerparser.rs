@@ -376,7 +376,7 @@ fn is_token_terminator(char: u8) -> bool {
 
 impl <'a>LexerParser<'a> {
     fn is_suffix(&self, suffix: &[u8]) -> bool {
-        let mut temp = self.string;
+        let mut temp = self.string.clone();
         for c in suffix {
             if *c != self.source[temp] {
                 return false
@@ -910,6 +910,10 @@ impl <'a>LexerParser<'a> {
                 // keep adding elements while we're in the same line
                 while self.token != Token::tok_eof && self.token != *end_token && self.lineno == lineno {
                     let v = self.parse_naked(map, subcolumn, end_token)?;
+
+                    //DEBUGGING nonsense
+                    unsafe {(*v.head).elem.value.print_value(map);}
+
                     self.list_builder.append(v);
                 }
             } else if self.token == Token::tok_statement {
@@ -958,6 +962,10 @@ impl <'a>LexerParser<'a> {
                 // keep adding elements while we're in the same line
                 while self.token != Token::tok_eof && self.token != Token::tok_none && self.lineno == lineno {
                     let v = self.parse_naked(map, 1, &Token::tok_none)?;
+
+                    //DEBUGGING nonsense
+                    unsafe {(*v.head).elem.value.print_value(map);}
+
                     self.list_builder.append(v);
                 }
             } else if self.token == Token::tok_statement {

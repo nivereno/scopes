@@ -8,8 +8,8 @@ pub struct List<T> {
 pub type Link<T> = *mut Node<T>;
 
 pub struct Node<T> {
-    elem: T,
-    next: Link<T>,
+    pub elem: T,
+    pub next: Link<T>,
 }
 
 pub struct IntoIter<T>(List<T>);
