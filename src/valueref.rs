@@ -37,6 +37,9 @@ impl Value {
 
         }
     }*/
+    pub fn get_value_kind_name() -> String {
+        todo!()
+    }
     pub fn print_value(&self, map: &mut SymbolMap) {
         match self {
             Value::i8(v) => print!("{} ", v),

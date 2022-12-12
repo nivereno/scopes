@@ -12,6 +12,7 @@ mod timer;
 mod lexerparser;
 mod valueref;
 mod list;
+mod config;
 use anchor::Anchor;
 
 fn main() {
