@@ -13,6 +13,7 @@ mod lexerparser;
 mod valueref;
 mod list;
 mod config;
+mod cache;
 use anchor::Anchor;
 
 fn main() {

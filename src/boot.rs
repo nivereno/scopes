@@ -63,11 +63,16 @@ fn load_custom_core() {
 // MAIN
 //------------------------------------------------------------------------------
 
+fn terminal_supports_ansi() -> bool {
+    todo!()
+}
+fn setup_stdio() {
 
+}
 
 
 pub fn init(timers: &mut HashMap<Symbol, Timer>, symbols: &mut BiMap<String, Symbol>) {
-    let path = std::env::current_dir().unwrap();
+    let path = std::env::current_dir();
 
     on_startup(timers);
 
@@ -76,5 +81,5 @@ pub fn init(timers: &mut HashMap<Symbol, Timer>, symbols: &mut BiMap<String, Sym
 
     //setup_stdio();
 
-
+    let exepath = std::env::current_exe();
 }
