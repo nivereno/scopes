@@ -4,6 +4,7 @@ use std::{collections::HashMap, thread, fs::File};
 use bimap::BiMap;
 use num;
 use crate::{symbol::{Symbol, KnownSymbol, SymbolMap}, timer::Timer, lexerparser::LexerParser};
+use flate2;
 
 mod anchor;
 mod symbol;

@@ -1,5 +1,8 @@
+use std::io::prelude::*;
 use core::cell::RefCell;
-use std::{cell::Ref, cmp::Ordering, fs::{self, DirEntry, remove_file}, ops::AddAssign, collections::hash_map::DefaultHasher, hash::Hasher};
+use std::{cell::Ref, cmp::Ordering, fs::{self, DirEntry, remove_file, File}, ops::AddAssign, collections::hash_map::DefaultHasher, hash::Hasher, fmt::format};
+
+use flate2::write::ZlibEncoder;
 
 use crate::config::{SCOPES_MAX_CACHE_SIZE, SCOPES_MAX_CACHE_INODES};
 
@@ -126,7 +129,7 @@ fn get_cache_key(hash: u64, content: &[u8]) -> String {
     }
 
     let mut key = String::with_capacity(64);
-    for i in 0..3 {
+    for i in 0..=3 {
         key.push_str(&(h[i].to_string())); 
         key.push_str("016");
         key.push_str("llx"); //TODO PRIx64
@@ -147,5 +150,15 @@ fn get_cache_file(key: &str) -> Option<String> {
                 misses.borrow_mut().add_assign(1);
             });
             return None;
+    });
+}
+
+fn set_cache(key: &str, key_content: &str, content: &[u8]) -> Result<(), anyhow::Error> {
+    return cache_dir.with(|dir| {
+        let filepath = format!("{}/{}.cache", dir.borrow(), key);
+        let file = File::open(filepath)?;
+        let mut writer = flate2::write::ZlibEncoder::new(file, flate2::Compression::default());
+        writer.write_all(content)?;
+        return Ok(())
     });
 }
