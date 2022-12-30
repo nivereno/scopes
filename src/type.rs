@@ -53,3 +53,44 @@ impl Type {
 
     }
 }
+
+fn is_opaque(T: &Type) -> bool {
+
+}
+fn storage_kind(T: &Type) -> TypeKind {
+
+}
+fn size_of(T: &Type) -> Result<usize, anyhow::Error> {
+
+}
+fn bitsize_of(T: &Type) -> Result<usize, anyhow::Error> {
+
+}
+fn qualified_size_of(T: &Type) -> Result<usize, anyhow::Error> {
+
+}
+fn align_of(T: &Type) -> Result<usize, anyhow::Error> {
+
+}
+fn qualified_align_of(T: &Type) -> Result<usize, anyhow::Error> {
+    
+}
+fn superof(T: &Type) -> &Type {
+
+}
+fn is_returning(T: &Type) -> bool {
+    
+}
+fn is_returning_value(T: &Type) -> bool {
+    
+}
+fn types_compatible(paramT: &Type, argT: &Type) -> bool {
+    
+}
+fn all_plain(types: &Type) -> bool {
+    
+}
+// can be copied implicitly, without needing a copy constructor
+fn is_plain(T: &Type) -> bool {
+
+}
