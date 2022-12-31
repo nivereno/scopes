@@ -6,6 +6,7 @@ use num;
 use crate::{symbol::{Symbol, KnownSymbol, SymbolMap}, timer::Timer, lexerparser::LexerParser};
 use flate2;
 
+mod types;
 mod anchor;
 mod symbol;
 mod boot;
