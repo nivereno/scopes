@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{symbol::Symbol, valueref::ValueRef};
+use crate::{symbol::{Symbol, KnownSymbol}, valueref::ValueRef};
 #[derive(PartialEq, Clone)]
 enum TypeKind {
 
@@ -36,10 +36,10 @@ impl Type {
         self.symbols.remove(&name);
     }
 
-    fn lookup_entry(name: Symbol, dest: &TypeEntry) -> bool {
+    fn lookup_entry(&self, name: Symbol, dest: &TypeEntry) -> bool {
         todo!()
     }
-    fn lookup_ref(name: Symbol, dest: &ValueRef) -> bool {
+    fn lookup_ref(&self, name: Symbol, dest: &ValueRef) -> bool {
         todo!()
     }
     fn lookup_local_entry(name: Symbol, dest: &TypeEntry) -> bool {
@@ -48,14 +48,14 @@ impl Type {
     fn lookup_local_ref(name: Symbol, dest: &ValueRef) -> bool {
         todo!()
     }
-    fn lookup_call_handler(dest: &ValueRef) -> bool {
-        todo!()
+    fn lookup_call_handler(&self, dest: &ValueRef) -> bool {
+        return self.lookup_ref(Symbol(KnownSymbol::SYM_CallHandler as u64), dest);
     }
-    fn lookup_return_handler(dest: &ValueRef) -> bool {
-        todo!()
+    fn lookup_return_handler(&self, dest: &ValueRef) -> bool {
+        return self.lookup_ref(Symbol(KnownSymbol::SYM_CallHandler as u64), dest);
     }
-    fn lookup_quote_handler(dest: &ValueRef) -> bool {
-        todo!()
+    fn lookup_quote_handler(&self, dest: &ValueRef) -> bool {
+        return self.lookup_ref(Symbol(KnownSymbol::SYM_CallHandler as u64), dest);
     }
 }
 
@@ -63,7 +63,10 @@ fn is_opaque(T: &Type) -> bool {
     todo!()
 }
 fn storage_kind(T: &Type) -> TypeKind {
-    todo!()
+    if is_opaque(T) {
+        return T.kind()
+    }
+    return storage_type(T).unwrap().kind();
 }
 fn size_of(T: &Type) -> Result<usize, anyhow::Error> {
     todo!()
@@ -88,14 +91,28 @@ fn is_returning(T: &Type) -> bool {
 }
 fn is_returning_value(T: &Type) -> bool {
     todo!()
+    //return is_returning(T) && T != empty_arguments_type()
 }
 fn types_compatible(paramT: &Type, argT: &Type) -> bool {
     todo!()
 }
-fn all_plain(types: &Type) -> bool {
-    todo!()
+fn all_plain(types: &Vec<Type>) -> bool {
+    for t in types {
+        if !is_plain(t) {
+            return false
+        }
+    }
+    return true
 }
 // can be copied implicitly, without needing a copy constructor
 fn is_plain(T: &Type) -> bool {
+    match T.kind() {
+
+    }
+
+    return false
+} 
+
+fn storage_type(T: &Type) -> Result<&Type, anyhow::Error> {
     todo!()
-}    
+}
