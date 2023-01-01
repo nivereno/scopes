@@ -8,7 +8,7 @@ enum TypeKind {
 #[derive(PartialEq, Clone)]
 struct TypeEntry {
     expr: ValueRef,
-    doc: String
+    doc: Option<String>
 }
 #[derive(PartialEq, Clone)]
 struct Type {
@@ -27,12 +27,13 @@ impl Type {
     fn bind_with_doc(&mut self, name: Symbol, entry: &TypeEntry) {
         self.symbols.insert(name, entry.clone());
     }
-    fn bind(name: Symbol, value: &ValueRef) {
-
+    fn bind(&mut self, name: Symbol, value: &ValueRef) {
+        let entry: TypeEntry = TypeEntry{expr: value.clone(), doc: None};
+        self.bind_with_doc(name, &entry);
     }
 
-    fn unbind(name: Symbol) {
-        
+    fn unbind(&mut self, name: Symbol) {
+        self.symbols.remove(&name);
     }
 
     fn lookup_entry(name: Symbol, dest: &TypeEntry) -> bool {
