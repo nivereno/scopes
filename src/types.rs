@@ -3,7 +3,23 @@ use std::collections::HashMap;
 use crate::{symbol::{Symbol, KnownSymbol}, valueref::ValueRef};
 #[derive(PartialEq, Clone)]
 enum TypeKind {
-
+    /* abstract types */
+    TK_Qualify,
+    TK_Arguments,
+    TK_Typename,
+    /* machine types */
+    TK_Integer,
+    TK_Real,
+    TK_Pointer,
+    TK_Array,
+    TK_Vector,
+    TK_Matrix,
+    TK_Tuple,
+    TK_Function,
+    /* additional GPU machine types */ 
+    TK_Sampler,
+    TK_Image,
+    TK_SampledImage,
 }
 #[derive(PartialEq, Clone)]
 struct TypeEntry {
@@ -15,6 +31,8 @@ struct Type {
     kind: TypeKind,
     symbols: HashMap<Symbol, TypeEntry>
 }
+
+
 
 impl Type {
     fn kind(&self) -> TypeKind {
@@ -87,6 +105,7 @@ fn superof(T: &Type) -> &Type {
     todo!()
 }
 fn is_returning(T: &Type) -> bool {
+    //return T != TYPE_NoReturn
     todo!()
 }
 fn is_returning_value(T: &Type) -> bool {
@@ -106,10 +125,18 @@ fn all_plain(types: &Vec<Type>) -> bool {
 }
 // can be copied implicitly, without needing a copy constructor
 fn is_plain(T: &Type) -> bool {
-    match T.kind() {
-
+    //use TypeKind
+    loop {
+        match T.kind() {
+            TypeKind::TK_Qualify => {todo!()},
+            TypeKind::TK_Pointer => {todo!()},
+            TypeKind::TK_Integer | TypeKind::TK_Real | TypeKind::TK_Image | TypeKind::TK_SampledImage | TypeKind::TK_Sampler | TypeKind::TK_Function => {return true},
+            TypeKind::TK_Array | TypeKind::TK_Vector | TypeKind::TK_Matrix => {todo!()},
+            TypeKind::TK_Tuple => {todo!()},
+            TypeKind::TK_Arguments => {todo!()},
+            TypeKind::TK_Typename => {todo!()}
+        }
     }
-
     return false
 } 
 
