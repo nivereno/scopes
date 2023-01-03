@@ -1,7 +1,11 @@
 use std::collections::HashMap;
 
+
 use crate::{symbol::{Symbol, KnownSymbol}, valueref::ValueRef};
-#[derive(PartialEq, Clone)]
+extern crate derive_more;
+use anyhow::anyhow;
+use derive_more::{Display};
+#[derive(PartialEq, Clone, Display)]
 enum TypeKind {
     /* abstract types */
     TK_Qualify,
@@ -143,3 +147,41 @@ fn is_plain(T: &Type) -> bool {
 fn storage_type(T: &Type) -> Result<&Type, anyhow::Error> {
     todo!()
 }
+
+//------------------------------------------------------------------------------
+// TYPE CHECK PREDICATES
+//------------------------------------------------------------------------------
+
+fn verify(need: &Type, have: &Type) -> Result<(), anyhow::Error> {
+    //if strip_lifetime(need) != strip_lifetime(have) {
+        let need = need.kind();
+        let have = have.kind();
+        return Err(anyhow!("ParameterTypeMismatch {need}, {have}"))
+    //}
+    //return Ok(())
+}
+
+fn verify_integer(T: &Type) -> Result<(), anyhow::Error> {
+    if T.kind() != TypeKind::TK_Integer {
+        let T = T.kind();
+        return Err(anyhow!("ParameterTypeMismatch TYPE_Integer, {T}"))
+    }
+    return Ok(())
+}
+
+fn verify_real(T: &Type) -> Result<(), anyhow::Error> {
+    if T.kind() != TypeKind::TK_Real {
+        let T = T.kind();
+        return Err(anyhow!("ParameterTypeMismatch TYPE_Real {T}"))
+    }
+    return Ok(())
+}
+
+fn verify_range(idx: usize, count: usize) -> Result<(), anyhow::Error> {
+    if idx >= count {
+        return Err(anyhow!("IndexOutOfRange {idx}, {count}"))
+    }
+    return Ok(())
+}
+
+//------------------------------------------------------------------------------
