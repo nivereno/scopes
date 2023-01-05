@@ -6,7 +6,7 @@ extern crate derive_more;
 use anyhow::anyhow;
 use derive_more::{Display};
 #[derive(PartialEq, Clone, Display)]
-enum TypeKind {
+pub enum TypeKind {
     /* abstract types */
     TK_Qualify,
     TK_Arguments,
@@ -31,7 +31,7 @@ struct TypeEntry {
     doc: Option<String>
 }
 #[derive(PartialEq, Clone)]
-struct Type {
+pub struct Type {
     kind: TypeKind,
     symbols: HashMap<Symbol, TypeEntry>
 }
@@ -203,10 +203,33 @@ fn is_plain(T: &Type) -> bool {
 } 
 
 fn storage_type(T: &Type) -> Result<&Type, anyhow::Error> {
+    /*T = strip_qualifiers(T);
+    match T.kind() {
+        TK_Typename => {
+            let tt = T;
+            todo!()
+            //const TypenameType *tt = cast<TypenameType>(T);
+            if !tt.is_complete() {
+                return anyhow!("TypenameIncomplete {T}")
+            }
+            if tt.is_opaque() {
+                return anyhow!("OpaqueType {T}")
+            }
+            return tt.storage();
+            }
+        _ => {return Ok(T)}
+    }*/
     todo!()
 }
 
 fn qualified_storage_type(T: &Type) -> Result<&Type, anyhow::Error> {
+    /*let rq = try_qualifier<ReferQualifier>(T);
+    if rq {
+        T = strip_qualifiers(T);
+        return pointer_type(T, rq.flags, rq.storage_class);
+    } else {
+        return storage_type(T);
+    }*/
     todo!()
 }
 //------------------------------------------------------------------------------
