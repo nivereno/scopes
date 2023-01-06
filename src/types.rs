@@ -25,6 +25,7 @@ pub enum TypeKind {
     TK_Image,
     TK_SampledImage,
 }
+
 #[derive(PartialEq, Clone)]
 struct TypeEntry {
     expr: ValueRef,
@@ -36,6 +37,73 @@ pub struct Type {
     symbols: HashMap<Symbol, TypeEntry>
 }
 
+struct B_Types {
+    /* types */
+    TYPE_Nothing: Type,
+    TYPE_NoReturn: Type,
+    TYPE_Type: Type,
+    TYPE_Unknown: Type,
+    TYPE_Variadic: Type,
+    TYPE_Symbol: Type,
+    TYPE_Builtin: Type,
+    TYPE__Value: Type,
+    TYPE_ValueRef: Type,
+    TYPE_Bool: Type,
+    TYPE_I8: Type,
+    TYPE_I16: Type,
+    TYPE_I32: Type,
+    TYPE_I64: Type,
+    TYPE_U8: Type,
+    TYPE_U16: Type,
+    TYPE_U32: Type,
+    TYPE_U64: Type,
+    TYPE_F16: Type,
+    TYPE_F32: Type,
+    TYPE_F64: Type,
+    TYPE_F80: Type,
+    TYPE_F128: Type,
+    TYPE_Char: Type,
+    TYPE_List: Type,
+    TYPE_Anchor: Type,
+    TYPE_String: Type,
+    TYPE_Scope: Type,
+    TYPE_SourceFile: Type,
+    TYPE_Error: Type,
+    TYPE_Closure: Type,
+    TYPE_ASTMacro: Type,
+    TYPE_CompileStage: Type,
+    TYPE_USize: Type,
+    TYPE_Sampler: Type,
+    /* supertypes */
+    TYPE_Immutable: Type,
+    TYPE_Aggregate: Type,
+    TYPE_OpaquePointer: Type,
+    TYPE_Integer: Type,
+    TYPE_Real: Type,
+    TYPE_Pointer: Type,
+    TYPE_Array: Type,
+    TYPE_ZArray: Type,
+    TYPE_Vector: Type,
+    TYPE_Matrix: Type,
+    TYPE_Tuple: Type,
+    TYPE_Union: Type,
+    TYPE_Qualify: Type,
+    TYPE_Typename: Type,
+    TYPE_Arguments: Type,
+    TYPE_Raises: Type,
+    TYPE_Function: Type,
+    TYPE_Constant: Type,
+    TYPE_Image: Type,
+    TYPE_SampledImage: Type,
+    TYPE_CStruct: Type,
+    TYPE_CUnion: Type,
+    TYPE_CEnum: Type
+}
+impl Default for B_Types {
+    fn default() -> Self {
+        return B_Types { TYPE_Nothing: (), TYPE_NoReturn: (), TYPE_Type: (), TYPE_Unknown: (), TYPE_Variadic: (), TYPE_Symbol: (), TYPE_Builtin: (), TYPE__Value: (), TYPE_ValueRef: (), TYPE_Bool: (), TYPE_I8: (), TYPE_I16: (), TYPE_I32: (), TYPE_I64: (), TYPE_U8: (), TYPE_U16: (), TYPE_U32: (), TYPE_U64: (), TYPE_F16: (), TYPE_F32: (), TYPE_F64: (), TYPE_F80: (), TYPE_F128: (), TYPE_Char: (), TYPE_List: (), TYPE_Anchor: (), TYPE_String: (), TYPE_Scope: (), TYPE_SourceFile: (), TYPE_Error: (), TYPE_Closure: (), TYPE_ASTMacro: (), TYPE_CompileStage: (), TYPE_USize: (), TYPE_Sampler: (), TYPE_Immutable: (), TYPE_Aggregate: (), TYPE_OpaquePointer: (), TYPE_Integer: (), TYPE_Real: (), TYPE_Pointer: (), TYPE_Array: (), TYPE_ZArray: (), TYPE_Vector: (), TYPE_Matrix: (), TYPE_Tuple: (), TYPE_Union: (), TYPE_Qualify: (), TYPE_Typename: (), TYPE_Arguments: (), TYPE_Raises: (), TYPE_Function: (), TYPE_Constant: (), TYPE_Image: (), TYPE_SampledImage: (), TYPE_CStruct: (), TYPE_CUnion: (), TYPE_CEnum: () }
+    }
+}
 
 
 impl Type {
@@ -187,7 +255,6 @@ fn all_plain(types: &Vec<Type>) -> bool {
 }
 // can be copied implicitly, without needing a copy constructor
 fn is_plain(T: &Type) -> bool {
-    //use TypeKind
     loop {
         match T.kind() {
             TypeKind::TK_Qualify => {todo!()},

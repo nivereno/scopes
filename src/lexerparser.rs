@@ -723,7 +723,7 @@ impl <'a>LexerParser<'a> {
     fn get_block_string(&self) -> String {
         let strip_col = self.column() + 4;
         let len = self.string_len - 4;
-        assert!(len >= 0);
+        //assert!(len >= 0);
         let mut start = self.string + 4;
         let mut end = start + len;
         let mut last_lf = end;
