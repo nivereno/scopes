@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 
-use crate::{symbol::{Symbol, KnownSymbol}, valueref::ValueRef};
+use crate::{symbol::{Symbol, KnownSymbol}, valueref::ValueRef, typename_type::{TypenameType, incomplete_typename_type}};
 extern crate derive_more;
 use anyhow::anyhow;
 use derive_more::{Display};
@@ -36,18 +36,24 @@ pub struct Type {
     kind: TypeKind,
     symbols: HashMap<Symbol, TypeEntry>
 }
+impl Default for Type {
+    fn default() -> Self {
+        //return Type { kind: (), symbols: HashMap::new() }
+        todo!()
+    }
+}
 
-struct B_Types {
+struct B_Types<'a> {
     /* types */
-    TYPE_Nothing: Type,
-    TYPE_NoReturn: Type,
-    TYPE_Type: Type,
-    TYPE_Unknown: Type,
-    TYPE_Variadic: Type,
-    TYPE_Symbol: Type,
-    TYPE_Builtin: Type,
-    TYPE__Value: Type,
-    TYPE_ValueRef: Type,
+    TYPE_Nothing: TypenameType<'a>,
+    TYPE_NoReturn: TypenameType<'a>,
+    TYPE_Type: TypenameType<'a>,
+    TYPE_Unknown: TypenameType<'a>,
+    TYPE_Variadic: TypenameType<'a>,
+    TYPE_Symbol: TypenameType<'a>,
+    TYPE_Builtin: TypenameType<'a>,
+    TYPE__Value: TypenameType<'a>,
+    TYPE_ValueRef: TypenameType<'a>,
     TYPE_Bool: Type,
     TYPE_I8: Type,
     TYPE_I16: Type,
@@ -99,9 +105,68 @@ struct B_Types {
     TYPE_CUnion: Type,
     TYPE_CEnum: Type
 }
-impl Default for B_Types {
+impl <'a>Default for B_Types<'a> {
     fn default() -> Self {
-        return B_Types { TYPE_Nothing: (), TYPE_NoReturn: (), TYPE_Type: (), TYPE_Unknown: (), TYPE_Variadic: (), TYPE_Symbol: (), TYPE_Builtin: (), TYPE__Value: (), TYPE_ValueRef: (), TYPE_Bool: (), TYPE_I8: (), TYPE_I16: (), TYPE_I32: (), TYPE_I64: (), TYPE_U8: (), TYPE_U16: (), TYPE_U32: (), TYPE_U64: (), TYPE_F16: (), TYPE_F32: (), TYPE_F64: (), TYPE_F80: (), TYPE_F128: (), TYPE_Char: (), TYPE_List: (), TYPE_Anchor: (), TYPE_String: (), TYPE_Scope: (), TYPE_SourceFile: (), TYPE_Error: (), TYPE_Closure: (), TYPE_ASTMacro: (), TYPE_CompileStage: (), TYPE_USize: (), TYPE_Sampler: (), TYPE_Immutable: (), TYPE_Aggregate: (), TYPE_OpaquePointer: (), TYPE_Integer: (), TYPE_Real: (), TYPE_Pointer: (), TYPE_Array: (), TYPE_ZArray: (), TYPE_Vector: (), TYPE_Matrix: (), TYPE_Tuple: (), TYPE_Union: (), TYPE_Qualify: (), TYPE_Typename: (), TYPE_Arguments: (), TYPE_Raises: (), TYPE_Function: (), TYPE_Constant: (), TYPE_Image: (), TYPE_SampledImage: (), TYPE_CStruct: (), TYPE_CUnion: (), TYPE_CEnum: () }
+        return B_Types { 
+            TYPE_Nothing: incomplete_typename_type("nothing", None), 
+            TYPE_NoReturn: (), 
+            TYPE_Type: (), 
+            TYPE_Unknown: (), 
+            TYPE_Variadic: (), 
+            TYPE_Symbol: (), 
+            TYPE_Builtin: (), 
+            TYPE__Value: (), 
+            TYPE_ValueRef: (), 
+            TYPE_Bool: (), 
+            TYPE_I8: (), 
+            TYPE_I16: (), 
+            TYPE_I32: (), 
+            TYPE_I64: (), 
+            TYPE_U8: (), 
+            TYPE_U16: (), 
+            TYPE_U32: (), 
+            TYPE_U64: (), 
+            TYPE_F16: (), 
+            TYPE_F32: (), 
+            TYPE_F64: (), 
+            TYPE_F80: (), 
+            TYPE_F128: (), 
+            TYPE_Char: (), 
+            TYPE_List: (), 
+            TYPE_Anchor: (), 
+            TYPE_String: (), 
+            TYPE_Scope: (), 
+            TYPE_SourceFile: (), 
+            TYPE_Error: (), 
+            TYPE_Closure: (), 
+            TYPE_ASTMacro: (), 
+            TYPE_CompileStage: (), 
+            TYPE_USize: (), 
+            TYPE_Sampler: (), 
+            TYPE_Immutable: (), 
+            TYPE_Aggregate: (), 
+            TYPE_OpaquePointer: (), 
+            TYPE_Integer: (), 
+            TYPE_Real: (), 
+            TYPE_Pointer: (), 
+            TYPE_Array: (), 
+            TYPE_ZArray: (), 
+            TYPE_Vector: (), 
+            TYPE_Matrix: (), 
+            TYPE_Tuple: (), 
+            TYPE_Union: (), 
+            TYPE_Qualify: (), 
+            TYPE_Typename: (), 
+            TYPE_Arguments: (), 
+            TYPE_Raises: (), 
+            TYPE_Function: (), 
+            TYPE_Constant: (), 
+            TYPE_Image: (), 
+            TYPE_SampledImage: (), 
+            TYPE_CStruct: (), 
+            TYPE_CUnion: (), 
+            TYPE_CEnum: () 
+        }
     }
 }
 

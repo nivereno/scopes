@@ -6,7 +6,8 @@ enum TypenameFlags {
     TNF_Complete = 1 << 1,
 }
 
-struct TypenameType<'a> {
+pub struct TypenameType<'a> {
+    this: Type,
     storage_type: Option<&'a Type>,
     super_type: Option<&'a Type>,
     _name: &'a str,
@@ -52,11 +53,11 @@ impl <'a>TypenameType<'a> {
 }
 
 // always generates a new type
-fn incomplete_typename_type<'a>(name: &str, supertype: &Type) -> TypenameType<'a> {
+pub fn incomplete_typename_type<'a>(name: &str, supertype: Option<&Type>) -> TypenameType<'a> {
     return TypenameType::new()//{_name: name, super_type: Some(supertype)};
 }
 
-fn opaque_typename_type<'a>(name: &str, supertype: &Type) -> TypenameType<'a> {
+pub fn opaque_typename_type<'a>(name: &str, supertype: Option<&Type>) -> TypenameType<'a> {
     let mut TT = incomplete_typename_type(name, supertype);
     match TT.complete() {
         Ok(_) => {return TT},
@@ -65,13 +66,13 @@ fn opaque_typename_type<'a>(name: &str, supertype: &Type) -> TypenameType<'a> {
     return TT;
 }
 
-fn plain_typename_type<'a>(name: &str, supertype: &Type, storage_type: &Type) -> Result<TypenameType<'a>, anyhow::Error> {
+pub fn plain_typename_type<'a>(name: &str, supertype: Option<&Type>, storage_type: &Type) -> Result<TypenameType<'a>, anyhow::Error> {
     let mut TT = incomplete_typename_type(name, supertype);
     TT.complete_set(storage_type, TypenameFlags::TNF_Plain as u32)?;
     return Ok(TT)
 }
 
-fn unique_typename_type<'a>(name: &str, supertype: &Type, storage_type: &Type) -> Result<TypenameType<'a>, anyhow::Error> {
+pub fn unique_typename_type<'a>(name: &str, supertype: Option<&Type>, storage_type: &Type) -> Result<TypenameType<'a>, anyhow::Error> {
     let mut TT = incomplete_typename_type(name, supertype);
     TT.complete_set(storage_type, 0)?;
     return Ok(TT)
