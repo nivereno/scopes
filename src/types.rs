@@ -1,7 +1,7 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, cell::RefCell};
 
 
-use crate::{symbol::{Symbol, KnownSymbol}, valueref::ValueRef, typename_type::{TypenameType, incomplete_typename_type}};
+use crate::{symbol::{Symbol, KnownSymbol}, valueref::ValueRef, typename_type::{TypenameType, incomplete_typename_type, opaque_typename_type, plain_typename_type}};
 extern crate derive_more;
 use anyhow::anyhow;
 use derive_more::{Display};
@@ -34,7 +34,7 @@ struct TypeEntry {
 #[derive(PartialEq, Clone)]
 pub struct Type {
     kind: TypeKind,
-    symbols: HashMap<Symbol, TypeEntry>
+    symbols: RefCell<HashMap<Symbol, TypeEntry>>
 }
 impl Default for Type {
     fn default() -> Self {
@@ -50,11 +50,13 @@ struct B_Types<'a> {
     TYPE_Type: TypenameType<'a>,
     TYPE_Unknown: TypenameType<'a>,
     TYPE_Variadic: TypenameType<'a>,
-    TYPE_Symbol: TypenameType<'a>,
-    TYPE_Builtin: TypenameType<'a>,
-    TYPE__Value: TypenameType<'a>,
-    TYPE_ValueRef: TypenameType<'a>,
-    TYPE_Bool: Type,
+    //TYPE_Symbol: TypenameType<'a>,
+    //TYPE_Builtin: TypenameType<'a>,
+    //TYPE__Value: TypenameType<'a>,
+    //TYPE_ValueRef: TypenameType<'a>,
+
+    // Just use Rust ints?
+    /*TYPE_Bool: Type,
     TYPE_I8: Type,
     TYPE_I16: Type,
     TYPE_I32: Type,
@@ -68,105 +70,105 @@ struct B_Types<'a> {
     TYPE_F64: Type,
     TYPE_F80: Type,
     TYPE_F128: Type,
-    TYPE_Char: Type,
-    TYPE_List: Type,
-    TYPE_Anchor: Type,
-    TYPE_String: Type,
-    TYPE_Scope: Type,
-    TYPE_SourceFile: Type,
-    TYPE_Error: Type,
-    TYPE_Closure: Type,
-    TYPE_ASTMacro: Type,
-    TYPE_CompileStage: Type,
-    TYPE_USize: Type,
+    TYPE_Char: Type, */
+
+    //TYPE_List: Type,
+    //TYPE_Anchor: Type,
+    //TYPE_String: Type,
+    //TYPE_Scope: Type,
+    //TYPE_SourceFile: Type,
+    //TYPE_Error: Type,
+    //TYPE_Closure: Type,
+    //TYPE_ASTMacro: Type,
+    //TYPE_CompileStage: Type,
+    //TYPE_USize: Type,
     TYPE_Sampler: Type,
     /* supertypes */
-    TYPE_Immutable: Type,
-    TYPE_Aggregate: Type,
-    TYPE_OpaquePointer: Type,
-    TYPE_Integer: Type,
-    TYPE_Real: Type,
-    TYPE_Pointer: Type,
-    TYPE_Array: Type,
-    TYPE_ZArray: Type,
-    TYPE_Vector: Type,
-    TYPE_Matrix: Type,
-    TYPE_Tuple: Type,
-    TYPE_Union: Type,
-    TYPE_Qualify: Type,
-    TYPE_Typename: Type,
-    TYPE_Arguments: Type,
-    TYPE_Raises: Type,
-    TYPE_Function: Type,
-    TYPE_Constant: Type,
-    TYPE_Image: Type,
-    TYPE_SampledImage: Type,
-    TYPE_CStruct: Type,
-    TYPE_CUnion: Type,
-    TYPE_CEnum: Type
+    TYPE_Immutable: TypenameType<'a>,
+    TYPE_Aggregate: TypenameType<'a>,
+    TYPE_OpaquePointer: TypenameType<'a>,
+    //TYPE_Integer: TypenameType<'a>,
+    //TYPE_Real: Type,
+    TYPE_Pointer: TypenameType<'a>,
+    //TYPE_Array: Type,
+    //TYPE_ZArray: Type,
+    //TYPE_Vector: Type,
+    //TYPE_Matrix: Type,
+    //TYPE_Tuple: Type,
+    TYPE_Union: TypenameType<'a>,
+    TYPE_Qualify: TypenameType<'a>,
+    TYPE_Typename: TypenameType<'a>,
+    TYPE_Arguments: TypenameType<'a>,
+    TYPE_Raises: TypenameType<'a>,
+    TYPE_Function: TypenameType<'a>,
+    TYPE_Constant: TypenameType<'a>,
+    TYPE_Image: TypenameType<'a>,
+    TYPE_SampledImage: TypenameType<'a>,
+    TYPE_CStruct: TypenameType<'a>,
+    TYPE_CUnion: TypenameType<'a>,
+    //TYPE_CEnum: TypenameType<'a>
+    With_Supertypes: Option<B_Types_With_Supertypes<'a>>
 }
 impl <'a>Default for B_Types<'a> {
     fn default() -> Self {
         return B_Types { 
             TYPE_Nothing: incomplete_typename_type("nothing", None), 
-            TYPE_NoReturn: (), 
-            TYPE_Type: (), 
-            TYPE_Unknown: (), 
-            TYPE_Variadic: (), 
-            TYPE_Symbol: (), 
-            TYPE_Builtin: (), 
-            TYPE__Value: (), 
-            TYPE_ValueRef: (), 
-            TYPE_Bool: (), 
-            TYPE_I8: (), 
-            TYPE_I16: (), 
-            TYPE_I32: (), 
-            TYPE_I64: (), 
-            TYPE_U8: (), 
-            TYPE_U16: (), 
-            TYPE_U32: (), 
-            TYPE_U64: (), 
-            TYPE_F16: (), 
-            TYPE_F32: (), 
-            TYPE_F64: (), 
-            TYPE_F80: (), 
-            TYPE_F128: (), 
-            TYPE_Char: (), 
-            TYPE_List: (), 
-            TYPE_Anchor: (), 
-            TYPE_String: (), 
-            TYPE_Scope: (), 
-            TYPE_SourceFile: (), 
-            TYPE_Error: (), 
-            TYPE_Closure: (), 
-            TYPE_ASTMacro: (), 
-            TYPE_CompileStage: (), 
-            TYPE_USize: (), 
-            TYPE_Sampler: (), 
-            TYPE_Immutable: (), 
-            TYPE_Aggregate: (), 
-            TYPE_OpaquePointer: (), 
-            TYPE_Integer: (), 
-            TYPE_Real: (), 
-            TYPE_Pointer: (), 
-            TYPE_Array: (), 
-            TYPE_ZArray: (), 
-            TYPE_Vector: (), 
-            TYPE_Matrix: (), 
-            TYPE_Tuple: (), 
-            TYPE_Union: (), 
-            TYPE_Qualify: (), 
-            TYPE_Typename: (), 
-            TYPE_Arguments: (), 
-            TYPE_Raises: (), 
-            TYPE_Function: (), 
-            TYPE_Constant: (), 
-            TYPE_Image: (), 
-            TYPE_SampledImage: (), 
-            TYPE_CStruct: (), 
-            TYPE_CUnion: (), 
-            TYPE_CEnum: () 
+            TYPE_NoReturn: opaque_typename_type("noreturn", None),
+            TYPE_Type:todo!(),// plain_typename_type("type", supertype, storage_type), 
+            TYPE_Unknown: todo!(),//plain_typename_type("Unknown", None, _TypePtr), 
+            TYPE_Variadic: opaque_typename_type("...", None), 
+            // TYPE_Symbol: (), 
+            // TYPE_Builtin: (), 
+            // TYPE__Value: todo!(), 
+            // TYPE_ValueRef: (),
+            // TYPE_Char: (), 
+            // TYPE_List: (), 
+            // TYPE_Anchor: (), 
+            // TYPE_String: (), 
+            // TYPE_Scope: (), 
+            // TYPE_SourceFile: (), 
+            // TYPE_Error: (), 
+            // TYPE_Closure: (), 
+            // TYPE_ASTMacro: (), 
+            // TYPE_CompileStage: (), 
+            // TYPE_USize: (), 
+            TYPE_Sampler: todo!(),//sampler_type(), 
+            TYPE_Immutable: opaque_typename_type("immutabe", None), 
+            TYPE_Aggregate: opaque_typename_type("aggregate", None), 
+            TYPE_OpaquePointer: opaque_typename_type("opaquepointer", None), 
+            
+            TYPE_Pointer: opaque_typename_type("pointer", None), 
+            // TYPE_Array: (), 
+            // TYPE_ZArray: (), 
+            
+            
+            // TYPE_Tuple: (), 
+            TYPE_Union: opaque_typename_type("union", None), 
+            TYPE_Qualify: opaque_typename_type("Qualify", None), 
+            TYPE_Typename: opaque_typename_type("typename", None), 
+            TYPE_Arguments: opaque_typename_type("Arguments", None), 
+            TYPE_Raises: opaque_typename_type("Raises", None), 
+            TYPE_Function: opaque_typename_type("function", None), 
+            TYPE_Constant: opaque_typename_type("Constant", None), 
+            TYPE_Image: opaque_typename_type("Image", None), 
+            TYPE_SampledImage: opaque_typename_type("SampledImage", None), 
+            TYPE_CStruct: opaque_typename_type("CStruct", None), 
+            TYPE_CUnion: opaque_typename_type("CUnion", None), 
+            
+            With_Supertypes: None
         }
+    }
+}
+struct B_Types_With_Supertypes<'a> {
+    TYPE_Integer: TypenameType<'a>,
+    TYPE_Real: TypenameType<'a>,
+    TYPE_Vector: TypenameType<'a>,
+    TYPE_Matrix: TypenameType<'a>,
+    TYPE_CEnum: TypenameType<'a>
+}
+impl <'a>B_Types<'a> {
+    pub fn new() -> &'static Self {
+        todo!()
     }
 }
 
@@ -180,7 +182,7 @@ impl Type {
     }
 
     fn bind_with_doc(&mut self, name: Symbol, entry: &TypeEntry) {
-        self.symbols.insert(name, entry.clone());
+        self.symbols.borrow_mut().insert(name, entry.clone());
     }
     fn bind(&mut self, name: Symbol, value: &ValueRef) {
         let entry: TypeEntry = TypeEntry{expr: value.clone(), doc: None};
@@ -188,13 +190,13 @@ impl Type {
     }
 
     fn unbind(&mut self, name: Symbol) {
-        self.symbols.remove(&name);
+        self.symbols.borrow_mut().remove(&name);
     }
 
     fn lookup_entry(&self, name: &Symbol, dest: &mut TypeEntry) -> bool {
         let mut T: Option<&Type> = Some(self);
         while let Some(Type) = T {
-            if let Some(entry) = self.symbols.get(name) {
+            if let Some(entry) = self.symbols.borrow_mut().get(name) {
                 *dest = entry.clone();
                 return true;
             }
@@ -214,7 +216,7 @@ impl Type {
         return false
     }
     fn lookup_local_entry(&self, name: &Symbol, dest: &mut TypeEntry) -> bool {
-        if let Some(entry) = self.symbols.get(name) {
+        if let Some(entry) = self.symbols.borrow_mut().get(name) {
             *dest = entry.clone();
             return true;
         }
