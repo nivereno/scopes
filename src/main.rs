@@ -17,6 +17,7 @@ mod list;
 mod config;
 mod cache;
 mod typename_type;
+mod pointer_type;
 use anchor::Anchor;
 
 fn main() {

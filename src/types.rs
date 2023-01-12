@@ -1,7 +1,7 @@
 use std::{collections::HashMap, cell::RefCell};
 
 
-use crate::{symbol::{Symbol, KnownSymbol}, valueref::ValueRef, typename_type::{TypenameType, incomplete_typename_type, opaque_typename_type, plain_typename_type}};
+use crate::{symbol::{Symbol, KnownSymbol}, valueref::ValueRef, typename_type::{TypenameType, incomplete_typename_type, opaque_typename_type, plain_typename_type}, pointer_type::native_opaque_pointer_type};
 extern crate derive_more;
 use anyhow::anyhow;
 use derive_more::{Display};
@@ -164,11 +164,40 @@ struct B_Types_With_Supertypes<'a> {
     TYPE_Real: TypenameType<'a>,
     TYPE_Vector: TypenameType<'a>,
     TYPE_Matrix: TypenameType<'a>,
+    TYPE_Array: TypenameType<'a>,
+    TYPE_Tuple: TypenameType<'a>,
+    TYPE__Value: TypenameType<'a>,
+    TYPE_Closure: TypenameType<'a>,
+    TYPE_Scope: TypenameType<'a>,
+    TYPE_String: TypenameType<'a>,
+    TYPE_List: TypenameType<'a>,
+    TYPE_Error: TypenameType<'a>,
+    TYPE_Anchor: TypenameType<'a>,
+    TYPE_SourceFile: TypenameType<'a>,
     TYPE_CEnum: TypenameType<'a>
 }
 impl <'a>B_Types<'a> {
-    pub fn new() -> &'static Self {
-        todo!()
+    pub fn new() -> Self {
+        let mut incomplete = B_Types::default();
+        let with_superypes = B_Types_With_Supertypes {
+            TYPE_Integer: opaque_typename_type("integer", Some(&incomplete.TYPE_Immutable.this)),
+            TYPE_Real: opaque_typename_type("real", Some(&incomplete.TYPE_Immutable.this)),
+            TYPE_Vector: opaque_typename_type("vector", Some(&incomplete.TYPE_Immutable.this)),
+            TYPE_Matrix: opaque_typename_type("matrix", Some(&incomplete.TYPE_Immutable.this)),
+            TYPE_Array: opaque_typename_type("array", Some(&incomplete.TYPE_Aggregate.this)),
+            TYPE_Tuple: opaque_typename_type("tuple", Some(&incomplete.TYPE_Aggregate.this)),
+            TYPE_CEnum: opaque_typename_type("Cenum", Some(&incomplete.TYPE_Immutable.this)),
+            TYPE__Value: plain_typename_type("_Value", None, native_opaque_pointer_type(&opaque_typename_type("__Value", None).this)).unwrap(),
+            TYPE_Closure: plain_typename_type("Closure", None, native_opaque_pointer_type(&opaque_typename_type("_Closure", None).this)).unwrap(),
+            TYPE_Scope: plain_typename_type("Scope", None, native_opaque_pointer_type(&opaque_typename_type("_Scope", None).this)).unwrap(),
+            TYPE_String: plain_typename_type("string", Some(&incomplete.TYPE_OpaquePointer.this), native_opaque_pointer_type(&opaque_typename_type("_string", None).this)).unwrap(),
+            TYPE_List: plain_typename_type("List", None, native_opaque_pointer_type(&opaque_typename_type("_List", None).this)).unwrap(),
+            TYPE_Error: plain_typename_type("Error", None, native_opaque_pointer_type(&opaque_typename_type("_Error", None).this)).unwrap(),
+            TYPE_Anchor: plain_typename_type("Anchor", None, native_opaque_pointer_type(&opaque_typename_type("_Anchor", None).this)).unwrap(),
+            TYPE_SourceFile: plain_typename_type("SourceFile", None, native_opaque_pointer_type(&opaque_typename_type("_SourceFile", None).this)).unwrap(),
+        };
+        incomplete.With_Supertypes = Some(with_superypes);
+        return incomplete
     }
 }
 

@@ -7,7 +7,7 @@ enum TypenameFlags {
 }
 
 pub struct TypenameType<'a> {
-    this: Type,
+    pub this: Type,
     storage_type: Option<&'a Type>,
     super_type: Option<&'a Type>,
     _name: &'a str,
