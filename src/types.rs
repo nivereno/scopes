@@ -50,28 +50,26 @@ struct B_Types<'a> {
     TYPE_Variadic: TypenameType<'a>,
     //TYPE_Symbol: TypenameType<'a>,
     //TYPE_Builtin: TypenameType<'a>,
-    //TYPE__Value: TypenameType<'a>,
     //TYPE_ValueRef: TypenameType<'a>,
 
-    // Just use Rust ints?
-    /*TYPE_Bool: Type,
-    TYPE_I8: Type,
-    TYPE_I16: Type,
-    TYPE_I32: Type,
-    TYPE_I64: Type,
-    TYPE_U8: Type,
-    TYPE_U16: Type,
-    TYPE_U32: Type,
-    TYPE_U64: Type,
-    TYPE_F16: Type,
-    TYPE_F32: Type,
-    TYPE_F64: Type,
-    TYPE_F80: Type,
-    TYPE_F128: Type,
-    TYPE_Char: Type, */
+        // Just use Rust ints?
+        /*TYPE_Bool: Type,
+        TYPE_I8: Type,
+        TYPE_I16: Type,
+        TYPE_I32: Type,
+        TYPE_I64: Type,
+        TYPE_U8: Type,
+        TYPE_U16: Type,
+        TYPE_U32: Type,
+        TYPE_U64: Type,
+        TYPE_F16: Type,
+        TYPE_F32: Type,
+        TYPE_F64: Type,
+        TYPE_F80: Type,
+        TYPE_F128: Type,
+        TYPE_Char: Type, */
 
-    //TYPE_List: Type,
-    //TYPE_Anchor: Type,
+    TYPE_Anchor: TypenameType<'a>,
     //TYPE_String: Type,
     //TYPE_Scope: Type,
     //TYPE_SourceFile: Type,
@@ -89,11 +87,12 @@ struct B_Types<'a> {
     //TYPE_Real: Type,
     TYPE_Pointer: TypenameType<'a>,
     _TypePtr: Type,
-    //TYPE_Array: Type,
-    //TYPE_ZArray: Type,
-    //TYPE_Vector: Type,
-    //TYPE_Matrix: Type,
-    //TYPE_Tuple: Type,
+    
+    TYPE__Value: TypenameType<'a>,
+    TYPE_Closure: TypenameType<'a>,
+    TYPE_Scope: TypenameType<'a>,
+    TYPE_List: TypenameType<'a>,
+    TYPE_Error: TypenameType<'a>,
     TYPE_Union: TypenameType<'a>,
     TYPE_Qualify: TypenameType<'a>,
     TYPE_Typename: TypenameType<'a>,
@@ -105,7 +104,6 @@ struct B_Types<'a> {
     TYPE_SampledImage: TypenameType<'a>,
     TYPE_CStruct: TypenameType<'a>,
     TYPE_CUnion: TypenameType<'a>,
-    //TYPE_CEnum: TypenameType<'a>
     With_Supertypes: Option<B_Types_With_Supertypes<'a>>
 }
 impl <'a>Default for B_Types<'a> {
@@ -115,12 +113,10 @@ impl <'a>Default for B_Types<'a> {
             TYPE_NoReturn: opaque_typename_type("noreturn", None),
             TYPE_Variadic: opaque_typename_type("...", None), 
             // TYPE_Symbol: (), 
-            // TYPE_Builtin: (), 
-            // TYPE__Value: todo!(), 
+            // TYPE_Builtin: (),
             // TYPE_ValueRef: (),
             // TYPE_Char: (), 
             // TYPE_List: (), 
-            // TYPE_Anchor: (), 
             // TYPE_String: (), 
             // TYPE_Scope: (), 
             // TYPE_SourceFile: (), 
@@ -129,18 +125,18 @@ impl <'a>Default for B_Types<'a> {
             // TYPE_ASTMacro: (), 
             // TYPE_CompileStage: (), 
             // TYPE_USize: (), 
-            TYPE_Sampler: todo!(),//sampler_type(), 
+            TYPE_Anchor: plain_typename_type("Anchor", None, native_opaque_pointer_type(&opaque_typename_type("_Anchor", None).this)).unwrap(),
+            TYPE_Sampler: todo!(), //sampler_type(), 
             TYPE_Immutable: opaque_typename_type("immutabe", None), 
             TYPE_Aggregate: opaque_typename_type("aggregate", None), 
             TYPE_OpaquePointer: opaque_typename_type("opaquepointer", None), 
-            
-            TYPE_Pointer: opaque_typename_type("pointer", None), 
+            TYPE_Pointer: opaque_typename_type("pointer", None),
             _TypePtr: native_ro_pointer_type(&opaque_typename_type("_type", None).this),
-            // TYPE_Array: (), 
-            // TYPE_ZArray: (), 
-            
-            
-            // TYPE_Tuple: (), 
+            TYPE__Value: plain_typename_type("_Value", None, native_opaque_pointer_type(&opaque_typename_type("__Value", None).this)).unwrap(),
+            TYPE_Closure: plain_typename_type("Closure", None, native_opaque_pointer_type(&opaque_typename_type("_Closure", None).this)).unwrap(),
+            TYPE_Scope: plain_typename_type("Scope", None, native_opaque_pointer_type(&opaque_typename_type("_Scope", None).this)).unwrap(),
+            TYPE_List: plain_typename_type("List", None, native_opaque_pointer_type(&opaque_typename_type("_List", None).this)).unwrap(),
+            TYPE_Error: plain_typename_type("Error", None, native_opaque_pointer_type(&opaque_typename_type("_Error", None).this)).unwrap(),
             TYPE_Union: opaque_typename_type("union", None), 
             TYPE_Qualify: opaque_typename_type("Qualify", None), 
             TYPE_Typename: opaque_typename_type("typename", None), 
@@ -151,9 +147,8 @@ impl <'a>Default for B_Types<'a> {
             TYPE_Image: opaque_typename_type("Image", None), 
             TYPE_SampledImage: opaque_typename_type("SampledImage", None), 
             TYPE_CStruct: opaque_typename_type("CStruct", None), 
-            TYPE_CUnion: opaque_typename_type("CUnion", None), 
-            
-            With_Supertypes: None
+            TYPE_CUnion: opaque_typename_type("CUnion", None),
+            With_Supertypes: None,
         }
     }
 }
@@ -167,13 +162,7 @@ struct B_Types_With_Supertypes<'a> {
     TYPE_Tuple: TypenameType<'a>,
     TYPE_Type: TypenameType<'a>,
     TYPE_Unknown: TypenameType<'a>,
-    TYPE__Value: TypenameType<'a>,
-    TYPE_Closure: TypenameType<'a>,
-    TYPE_Scope: TypenameType<'a>,
     TYPE_String: TypenameType<'a>,
-    TYPE_List: TypenameType<'a>,
-    TYPE_Error: TypenameType<'a>,
-    TYPE_Anchor: TypenameType<'a>,
     TYPE_SourceFile: TypenameType<'a>,
     TYPE_CEnum: TypenameType<'a>
 }
@@ -189,13 +178,7 @@ impl <'a>B_Types<'a> {
             TYPE_Tuple: opaque_typename_type("tuple", Some(&incomplete.TYPE_Aggregate.this)),
             TYPE_Type: plain_typename_type("type", None, &incomplete._TypePtr).unwrap(),
             TYPE_Unknown: plain_typename_type("Unknown", None, &incomplete._TypePtr).unwrap(),
-            TYPE__Value: plain_typename_type("_Value", None, native_opaque_pointer_type(&opaque_typename_type("__Value", None).this)).unwrap(),
-            TYPE_Closure: plain_typename_type("Closure", None, native_opaque_pointer_type(&opaque_typename_type("_Closure", None).this)).unwrap(),
-            TYPE_Scope: plain_typename_type("Scope", None, native_opaque_pointer_type(&opaque_typename_type("_Scope", None).this)).unwrap(),
             TYPE_String: plain_typename_type("string", Some(&incomplete.TYPE_OpaquePointer.this), native_opaque_pointer_type(&opaque_typename_type("_string", None).this)).unwrap(),
-            TYPE_List: plain_typename_type("List", None, native_opaque_pointer_type(&opaque_typename_type("_List", None).this)).unwrap(),
-            TYPE_Error: plain_typename_type("Error", None, native_opaque_pointer_type(&opaque_typename_type("_Error", None).this)).unwrap(),
-            TYPE_Anchor: plain_typename_type("Anchor", None, native_opaque_pointer_type(&opaque_typename_type("_Anchor", None).this)).unwrap(),
             TYPE_SourceFile: plain_typename_type("SourceFile", None, native_opaque_pointer_type(&opaque_typename_type("_SourceFile", None).this)).unwrap(),
             TYPE_CEnum: opaque_typename_type("Cenum", Some(&incomplete.TYPE_Immutable.this)),
         };
