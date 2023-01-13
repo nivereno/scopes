@@ -1,7 +1,7 @@
 use std::{collections::HashMap, cell::RefCell};
 
 
-use crate::{symbol::{Symbol, KnownSymbol}, valueref::ValueRef, typename_type::{TypenameType, incomplete_typename_type, opaque_typename_type, plain_typename_type}, pointer_type::native_opaque_pointer_type};
+use crate::{symbol::{Symbol, KnownSymbol}, valueref::ValueRef, typename_type::{TypenameType, incomplete_typename_type, opaque_typename_type, plain_typename_type}, pointer_type::{native_opaque_pointer_type, native_ro_pointer_type}};
 extern crate derive_more;
 use anyhow::anyhow;
 use derive_more::{Display};
@@ -47,8 +47,6 @@ struct B_Types<'a> {
     /* types */
     TYPE_Nothing: TypenameType<'a>,
     TYPE_NoReturn: TypenameType<'a>,
-    TYPE_Type: TypenameType<'a>,
-    TYPE_Unknown: TypenameType<'a>,
     TYPE_Variadic: TypenameType<'a>,
     //TYPE_Symbol: TypenameType<'a>,
     //TYPE_Builtin: TypenameType<'a>,
@@ -90,6 +88,7 @@ struct B_Types<'a> {
     //TYPE_Integer: TypenameType<'a>,
     //TYPE_Real: Type,
     TYPE_Pointer: TypenameType<'a>,
+    _TypePtr: Type,
     //TYPE_Array: Type,
     //TYPE_ZArray: Type,
     //TYPE_Vector: Type,
@@ -114,8 +113,6 @@ impl <'a>Default for B_Types<'a> {
         return B_Types { 
             TYPE_Nothing: incomplete_typename_type("nothing", None), 
             TYPE_NoReturn: opaque_typename_type("noreturn", None),
-            TYPE_Type:todo!(),// plain_typename_type("type", supertype, storage_type), 
-            TYPE_Unknown: todo!(),//plain_typename_type("Unknown", None, _TypePtr), 
             TYPE_Variadic: opaque_typename_type("...", None), 
             // TYPE_Symbol: (), 
             // TYPE_Builtin: (), 
@@ -138,6 +135,7 @@ impl <'a>Default for B_Types<'a> {
             TYPE_OpaquePointer: opaque_typename_type("opaquepointer", None), 
             
             TYPE_Pointer: opaque_typename_type("pointer", None), 
+            _TypePtr: native_ro_pointer_type(&opaque_typename_type("_type", None).this),
             // TYPE_Array: (), 
             // TYPE_ZArray: (), 
             
@@ -165,7 +163,10 @@ struct B_Types_With_Supertypes<'a> {
     TYPE_Vector: TypenameType<'a>,
     TYPE_Matrix: TypenameType<'a>,
     TYPE_Array: TypenameType<'a>,
+    TYPE_ZArray: Option<TypenameType<'a>>,
     TYPE_Tuple: TypenameType<'a>,
+    TYPE_Type: TypenameType<'a>,
+    TYPE_Unknown: TypenameType<'a>,
     TYPE__Value: TypenameType<'a>,
     TYPE_Closure: TypenameType<'a>,
     TYPE_Scope: TypenameType<'a>,
@@ -179,14 +180,16 @@ struct B_Types_With_Supertypes<'a> {
 impl <'a>B_Types<'a> {
     pub fn new() -> Self {
         let mut incomplete = B_Types::default();
-        let with_superypes = B_Types_With_Supertypes {
+        let mut with_supertypes = B_Types_With_Supertypes {
             TYPE_Integer: opaque_typename_type("integer", Some(&incomplete.TYPE_Immutable.this)),
             TYPE_Real: opaque_typename_type("real", Some(&incomplete.TYPE_Immutable.this)),
             TYPE_Vector: opaque_typename_type("vector", Some(&incomplete.TYPE_Immutable.this)),
             TYPE_Matrix: opaque_typename_type("matrix", Some(&incomplete.TYPE_Immutable.this)),
             TYPE_Array: opaque_typename_type("array", Some(&incomplete.TYPE_Aggregate.this)),
+            TYPE_ZArray: None,
             TYPE_Tuple: opaque_typename_type("tuple", Some(&incomplete.TYPE_Aggregate.this)),
-            TYPE_CEnum: opaque_typename_type("Cenum", Some(&incomplete.TYPE_Immutable.this)),
+            TYPE_Type: plain_typename_type("type", None, &incomplete._TypePtr).unwrap(),
+            TYPE_Unknown: plain_typename_type("Unknown", None, &incomplete._TypePtr).unwrap(),
             TYPE__Value: plain_typename_type("_Value", None, native_opaque_pointer_type(&opaque_typename_type("__Value", None).this)).unwrap(),
             TYPE_Closure: plain_typename_type("Closure", None, native_opaque_pointer_type(&opaque_typename_type("_Closure", None).this)).unwrap(),
             TYPE_Scope: plain_typename_type("Scope", None, native_opaque_pointer_type(&opaque_typename_type("_Scope", None).this)).unwrap(),
@@ -195,8 +198,10 @@ impl <'a>B_Types<'a> {
             TYPE_Error: plain_typename_type("Error", None, native_opaque_pointer_type(&opaque_typename_type("_Error", None).this)).unwrap(),
             TYPE_Anchor: plain_typename_type("Anchor", None, native_opaque_pointer_type(&opaque_typename_type("_Anchor", None).this)).unwrap(),
             TYPE_SourceFile: plain_typename_type("SourceFile", None, native_opaque_pointer_type(&opaque_typename_type("_SourceFile", None).this)).unwrap(),
+            TYPE_CEnum: opaque_typename_type("Cenum", Some(&incomplete.TYPE_Immutable.this)),
         };
-        incomplete.With_Supertypes = Some(with_superypes);
+        incomplete.With_Supertypes = Some(with_supertypes);
+        incomplete.With_Supertypes.as_mut().unwrap().TYPE_ZArray = Some(opaque_typename_type("zarray", Some(&incomplete.With_Supertypes.as_ref().unwrap().TYPE_Array.this)));
         return incomplete
     }
 }
