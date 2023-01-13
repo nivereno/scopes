@@ -178,9 +178,8 @@ struct B_Types_With_Supertypes<'a> {
     TYPE_CEnum: TypenameType<'a>
 }
 impl <'a>B_Types<'a> {
-    pub fn new() -> Self {
-        let mut incomplete = B_Types::default();
-        let mut with_supertypes = B_Types_With_Supertypes {
+    pub fn new(incomplete: &'a mut B_Types) -> &'a Self {
+        let with_supertypes = B_Types_With_Supertypes {
             TYPE_Integer: opaque_typename_type("integer", Some(&incomplete.TYPE_Immutable.this)),
             TYPE_Real: opaque_typename_type("real", Some(&incomplete.TYPE_Immutable.this)),
             TYPE_Vector: opaque_typename_type("vector", Some(&incomplete.TYPE_Immutable.this)),
