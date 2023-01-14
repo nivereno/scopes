@@ -72,22 +72,17 @@ struct B_Types<'a> {
     TYPE_Anchor: TypenameType<'a>,
     //TYPE_String: Type,
     //TYPE_Scope: Type,
-    //TYPE_SourceFile: Type,
-    //TYPE_Error: Type,
-    //TYPE_Closure: Type,
+    TYPE_SourceFile: TypenameType<'a>,
     //TYPE_ASTMacro: Type,
     //TYPE_CompileStage: Type,
     //TYPE_USize: Type,
-    TYPE_Sampler: Type,
+    //TYPE_Sampler: Type,
     /* supertypes */
     TYPE_Immutable: TypenameType<'a>,
     TYPE_Aggregate: TypenameType<'a>,
     TYPE_OpaquePointer: TypenameType<'a>,
-    //TYPE_Integer: TypenameType<'a>,
-    //TYPE_Real: Type,
     TYPE_Pointer: TypenameType<'a>,
     _TypePtr: Type,
-    
     TYPE__Value: TypenameType<'a>,
     TYPE_Closure: TypenameType<'a>,
     TYPE_Scope: TypenameType<'a>,
@@ -126,7 +121,7 @@ impl <'a>Default for B_Types<'a> {
             // TYPE_CompileStage: (), 
             // TYPE_USize: (), 
             TYPE_Anchor: plain_typename_type("Anchor", None, native_opaque_pointer_type(&opaque_typename_type("_Anchor", None).this)).unwrap(),
-            TYPE_Sampler: todo!(), //sampler_type(), 
+            //TYPE_Sampler: todo!(), //sampler_type(), 
             TYPE_Immutable: opaque_typename_type("immutabe", None), 
             TYPE_Aggregate: opaque_typename_type("aggregate", None), 
             TYPE_OpaquePointer: opaque_typename_type("opaquepointer", None), 
@@ -147,6 +142,7 @@ impl <'a>Default for B_Types<'a> {
             TYPE_Image: opaque_typename_type("Image", None), 
             TYPE_SampledImage: opaque_typename_type("SampledImage", None), 
             TYPE_CStruct: opaque_typename_type("CStruct", None), 
+            TYPE_SourceFile: plain_typename_type("SourceFile", None, native_opaque_pointer_type(&opaque_typename_type("_SourceFile", None).this)).unwrap(),
             TYPE_CUnion: opaque_typename_type("CUnion", None),
             With_Supertypes: None,
         }
@@ -163,7 +159,6 @@ struct B_Types_With_Supertypes<'a> {
     TYPE_Type: TypenameType<'a>,
     TYPE_Unknown: TypenameType<'a>,
     TYPE_String: TypenameType<'a>,
-    TYPE_SourceFile: TypenameType<'a>,
     TYPE_CEnum: TypenameType<'a>
 }
 impl <'a>B_Types<'a> {
@@ -179,7 +174,7 @@ impl <'a>B_Types<'a> {
             TYPE_Type: plain_typename_type("type", None, &incomplete._TypePtr).unwrap(),
             TYPE_Unknown: plain_typename_type("Unknown", None, &incomplete._TypePtr).unwrap(),
             TYPE_String: plain_typename_type("string", Some(&incomplete.TYPE_OpaquePointer.this), native_opaque_pointer_type(&opaque_typename_type("_string", None).this)).unwrap(),
-            TYPE_SourceFile: plain_typename_type("SourceFile", None, native_opaque_pointer_type(&opaque_typename_type("_SourceFile", None).this)).unwrap(),
+            
             TYPE_CEnum: opaque_typename_type("Cenum", Some(&incomplete.TYPE_Immutable.this)),
         };
         incomplete.With_Supertypes = Some(with_supertypes);
@@ -209,23 +204,23 @@ impl Type {
         self.symbols.borrow_mut().remove(&name);
     }
 
-    fn lookup_entry(&self, name: &Symbol, dest: &mut TypeEntry) -> bool {
+    fn lookup_entry(&self, name: &Symbol, dest: &mut TypeEntry, types: &B_Types) -> bool {
         let mut T: Option<&Type> = Some(self);
         while let Some(Type) = T {
             if let Some(entry) = self.symbols.borrow_mut().get(name) {
                 *dest = entry.clone();
                 return true;
             }
-            //if Type == TYPE_Typename {
-            //    break;
-            //}
-            T = superof(Type);
+            if *Type == types.TYPE_Typename.this {
+                break;
+            }
+            T = superof(Type, types);
         }
         return false;
     }
-    fn lookup_ref(&self, name: &Symbol, dest: &mut ValueRef) -> bool {
+    fn lookup_ref(&self, name: &Symbol, dest: &mut ValueRef, types: &B_Types) -> bool {
         let mut entry = TypeEntry{expr: ValueRef {value: crate::valueref::Value::usize(0), anchor: crate::anchor::Anchor::from(Symbol(0), 0, 0, 0)}, doc: None};
-        if self.lookup_entry(name, &mut entry) {
+        if self.lookup_entry(name, &mut entry, types) {
             *dest = entry.expr;
             return true
         }
@@ -246,14 +241,14 @@ impl Type {
         }
         return false;
     }
-    fn lookup_call_handler(&self, dest: &mut ValueRef) -> bool {
-        return self.lookup_ref(&Symbol(KnownSymbol::SYM_CallHandler as u64), dest);
+    fn lookup_call_handler(&self, dest: &mut ValueRef, types: &B_Types) -> bool {
+        return self.lookup_ref(&Symbol(KnownSymbol::SYM_CallHandler as u64), dest, types);
     }
-    fn lookup_return_handler(&self, dest: &mut ValueRef) -> bool {
-        return self.lookup_ref(&Symbol(KnownSymbol::SYM_CallHandler as u64), dest);
+    fn lookup_return_handler(&self, dest: &mut ValueRef, types: &B_Types) -> bool {
+        return self.lookup_ref(&Symbol(KnownSymbol::SYM_CallHandler as u64), dest, types);
     }
-    fn lookup_quote_handler(&self, dest: &mut ValueRef) -> bool {
-        return self.lookup_ref(&Symbol(KnownSymbol::SYM_CallHandler as u64), dest);
+    fn lookup_quote_handler(&self, dest: &mut ValueRef, types: &B_Types) -> bool {
+        return self.lookup_ref(&Symbol(KnownSymbol::SYM_CallHandler as u64), dest, types);
     }
 }
 
@@ -297,29 +292,29 @@ fn align_of(T: &Type) -> Result<usize, anyhow::Error> {
 fn qualified_align_of(T: &Type) -> Result<usize, anyhow::Error> {
     return align_of(qualified_storage_type(T)?)
 }
-fn superof(T: &Type) -> Option<&Type> {
-    todo!()
-    /*match T.kind() {
-        TypeKind::TK_Qualify => {return TYPE_Qualify},
-        TypeKind::TK_Arguments => return TYPE_Arguments},
-        TypeKind::TK_Integer => {return TYPE_Integer},
-        TypeKind::TK_Real => {return TYPE_Real},
-        TypeKind::TK_Pointer => {return TYPE_Pointer},
-        TypeKind::TK_Array => {return (cast<ArrayType>(T)->is_zterm())?TYPE_ZArray:TYPE_Array},
-        TypeKind::TK_Vector => {return TYPE_Vector},
-        TypeKind::TK_Matrix => {return TYPE_Matrix},
-        TypeKind::TK_Tuple => {return TYPE_Tuple},
-        TypeKind::TK_Typename => {return cast<TypenameType>(T)->super()},
-        TypeKind::TK_Function => {return TYPE_Function},
-        TypeKind::TK_Image => {return TYPE_Image},
-        TypeKind::TK_SampledImage => {return TYPE_SampledImage},
-        TypeKind::TK_Sampler => {return TYPE_Immutable},
+fn superof<'a>(T: &'a Type, types: &'a B_Types<'a>) -> Option<&'a Type> {
+    match T.kind() {
+        TypeKind::TK_Qualify => {return Some(&types.TYPE_Qualify.this)},
+        TypeKind::TK_Arguments => {return Some(&types.TYPE_Arguments.this)},
+        TypeKind::TK_Integer => {return Some(&types.With_Supertypes.as_ref().unwrap().TYPE_Integer.this)},
+        TypeKind::TK_Real => {return Some(&types.With_Supertypes.as_ref().unwrap().TYPE_Real.this)},
+        TypeKind::TK_Pointer => {return Some(&types.TYPE_Pointer.this)},
+        TypeKind::TK_Array => {todo!()},//{return (cast<ArrayType>(T)->is_zterm())?TYPE_ZArray:TYPE_Array},
+        TypeKind::TK_Vector => {return Some(&types.With_Supertypes.as_ref().unwrap().TYPE_Vector.this)},
+        TypeKind::TK_Matrix => {return Some(&types.With_Supertypes.as_ref().unwrap().TYPE_Matrix.this)},
+        TypeKind::TK_Tuple => {return Some(&types.With_Supertypes.as_ref().unwrap().TYPE_Tuple.this)},
+        TypeKind::TK_Typename => {todo!()},//{return cast<TypenameType>(T)->super()},
+        TypeKind::TK_Function => {return Some(&types.TYPE_Function.this)},
+        TypeKind::TK_Image => {return Some(&types.TYPE_Image.this)},
+        TypeKind::TK_SampledImage => {return Some(&types.TYPE_SampledImage.this)},
+        TypeKind::TK_Sampler => {return Some(&types.TYPE_Immutable.this)},
+        _ => {},
     }
-    return Err(anyhow!("unhandled type kind; corrupt pointer?"))*/
+    //return Err(anyhow!("unhandled type kind; corrupt pointer?"));
+    return None
 }
-fn is_returning(T: &Type) -> bool {
-    //return T != TYPE_NoReturn
-    todo!()
+fn is_returning(T: &Type, types: &B_Types) -> bool {
+    return *T != types.TYPE_NoReturn.this
 }
 fn is_returning_value(T: &Type) -> bool {
     todo!()
