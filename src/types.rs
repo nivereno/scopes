@@ -43,11 +43,11 @@ impl Default for Type {
     }
 }
 
-struct B_Types<'a> {
+pub struct B_Types<'a> {
     /* types */
-    TYPE_Nothing: TypenameType<'a>,
-    TYPE_NoReturn: TypenameType<'a>,
-    TYPE_Variadic: TypenameType<'a>,
+    pub TYPE_Nothing: TypenameType<'a>,
+    pub TYPE_NoReturn: TypenameType<'a>,
+    pub TYPE_Variadic: TypenameType<'a>,
     //TYPE_Symbol: TypenameType<'a>,
     //TYPE_Builtin: TypenameType<'a>,
     //TYPE_ValueRef: TypenameType<'a>,
@@ -69,37 +69,37 @@ struct B_Types<'a> {
         TYPE_F128: Type,
         TYPE_Char: Type, */
 
-    TYPE_Anchor: TypenameType<'a>,
+    pub TYPE_Anchor: TypenameType<'a>,
     //TYPE_String: Type,
     //TYPE_Scope: Type,
-    TYPE_SourceFile: TypenameType<'a>,
+    pub TYPE_SourceFile: TypenameType<'a>,
     //TYPE_ASTMacro: Type,
     //TYPE_CompileStage: Type,
     //TYPE_USize: Type,
     //TYPE_Sampler: Type,
     /* supertypes */
-    TYPE_Immutable: TypenameType<'a>,
-    TYPE_Aggregate: TypenameType<'a>,
-    TYPE_OpaquePointer: TypenameType<'a>,
-    TYPE_Pointer: TypenameType<'a>,
-    _TypePtr: Type,
-    TYPE__Value: TypenameType<'a>,
-    TYPE_Closure: TypenameType<'a>,
-    TYPE_Scope: TypenameType<'a>,
-    TYPE_List: TypenameType<'a>,
-    TYPE_Error: TypenameType<'a>,
-    TYPE_Union: TypenameType<'a>,
-    TYPE_Qualify: TypenameType<'a>,
-    TYPE_Typename: TypenameType<'a>,
-    TYPE_Arguments: TypenameType<'a>,
-    TYPE_Raises: TypenameType<'a>,
-    TYPE_Function: TypenameType<'a>,
-    TYPE_Constant: TypenameType<'a>,
-    TYPE_Image: TypenameType<'a>,
-    TYPE_SampledImage: TypenameType<'a>,
-    TYPE_CStruct: TypenameType<'a>,
-    TYPE_CUnion: TypenameType<'a>,
-    With_Supertypes: Option<B_Types_With_Supertypes<'a>>
+    pub TYPE_Immutable: TypenameType<'a>,
+    pub TYPE_Aggregate: TypenameType<'a>,
+    pub TYPE_OpaquePointer: TypenameType<'a>,
+    pub TYPE_Pointer: TypenameType<'a>,
+    pub _TypePtr: Type,
+    pub TYPE__Value: TypenameType<'a>,
+    pub TYPE_Closure: TypenameType<'a>,
+    pub TYPE_Scope: TypenameType<'a>,
+    pub TYPE_List: TypenameType<'a>,
+    pub TYPE_Error: TypenameType<'a>,
+    pub TYPE_Union: TypenameType<'a>,
+    pub TYPE_Qualify: TypenameType<'a>,
+    pub TYPE_Typename: TypenameType<'a>,
+    pub TYPE_Arguments: TypenameType<'a>,
+    pub TYPE_Raises: TypenameType<'a>,
+    pub TYPE_Function: TypenameType<'a>,
+    pub TYPE_Constant: TypenameType<'a>,
+    pub TYPE_Image: TypenameType<'a>,
+    pub TYPE_SampledImage: TypenameType<'a>,
+    pub TYPE_CStruct: TypenameType<'a>,
+    pub TYPE_CUnion: TypenameType<'a>,
+    pub With_Supertypes: Option<B_Types_With_Supertypes<'a>>
 }
 impl <'a>Default for B_Types<'a> {
     fn default() -> Self {
@@ -148,21 +148,21 @@ impl <'a>Default for B_Types<'a> {
         }
     }
 }
-struct B_Types_With_Supertypes<'a> {
-    TYPE_Integer: TypenameType<'a>,
-    TYPE_Real: TypenameType<'a>,
-    TYPE_Vector: TypenameType<'a>,
-    TYPE_Matrix: TypenameType<'a>,
-    TYPE_Array: TypenameType<'a>,
-    TYPE_ZArray: Option<TypenameType<'a>>,
-    TYPE_Tuple: TypenameType<'a>,
-    TYPE_Type: TypenameType<'a>,
-    TYPE_Unknown: TypenameType<'a>,
-    TYPE_String: TypenameType<'a>,
-    TYPE_CEnum: TypenameType<'a>
+pub struct B_Types_With_Supertypes<'a> {
+    pub TYPE_Integer: TypenameType<'a>,
+    pub TYPE_Real: TypenameType<'a>,
+    pub TYPE_Vector: TypenameType<'a>,
+    pub TYPE_Matrix: TypenameType<'a>,
+    pub TYPE_Array: TypenameType<'a>,
+    pub TYPE_ZArray: Option<TypenameType<'a>>,
+    pub TYPE_Tuple: TypenameType<'a>,
+    pub TYPE_Type: TypenameType<'a>,
+    pub TYPE_Unknown: TypenameType<'a>,
+    pub TYPE_String: TypenameType<'a>,
+    pub TYPE_CEnum: TypenameType<'a>
 }
 impl <'a>B_Types<'a> {
-    pub fn new(incomplete: &'a mut B_Types) -> &'a Self {
+    pub fn new(incomplete: &'a mut B_Types<'a>) -> &'a Self {
         let with_supertypes = B_Types_With_Supertypes {
             TYPE_Integer: opaque_typename_type("integer", Some(&incomplete.TYPE_Immutable.this)),
             TYPE_Real: opaque_typename_type("real", Some(&incomplete.TYPE_Immutable.this)),
@@ -332,7 +332,7 @@ fn all_plain(types: &Vec<Type>) -> bool {
     return true
 }
 // can be copied implicitly, without needing a copy constructor
-fn is_plain(T: &Type) -> bool {
+pub fn is_plain(T: &Type) -> bool {
     loop {
         match T.kind() {
             TypeKind::TK_Qualify => {todo!()},

@@ -1,11 +1,12 @@
-use crate::types::Type;
-use anyhow::anyhow;
+use crate::types::{Type, is_plain};
+use anyhow::{anyhow};
 use derive_more::{Display};
 enum TypenameFlags {
     TNF_Plain = 1 << 0,
     TNF_Complete = 1 << 1,
 }
 
+#[derive(PartialEq, Clone)]
 pub struct TypenameType<'a> {
     pub this: Type,
     storage_type: Option<&'a Type>,
@@ -31,8 +32,20 @@ impl <'a>TypenameType<'a> {
         self.flags = TypenameFlags::TNF_Complete as u32;
         return Ok(())
     }
-    pub fn complete_set(&self, _type: &Type, _flags: u32) -> Result<(), anyhow::Error> {
-        todo!()
+    pub fn complete_set(&mut self, _type: &'a Type, mut _flags: u32) -> Result<(), anyhow::Error> {
+        _flags |= TypenameFlags::TNF_Complete as u32;
+        if self.is_complete() {
+            todo!()
+        }
+        if false { //isa<TypenameType>(_type)
+            todo!()
+        }
+        if (_flags & TypenameFlags::TNF_Plain as u32) != 0 && !is_plain(_type) {
+            todo!()
+        }
+        self.storage_type = Some(_type);
+        self.flags = _flags;
+        return Ok(());
     }
     fn is_opaque(&self) -> bool {
         return self.storage_type == None
@@ -66,13 +79,13 @@ pub fn opaque_typename_type<'a>(name: &str, supertype: Option<&Type>) -> Typenam
     return TT;
 }
 
-pub fn plain_typename_type<'a>(name: &str, supertype: Option<&Type>, storage_type: &Type) -> Result<TypenameType<'a>, anyhow::Error> {
+pub fn plain_typename_type<'a>(name: &str, supertype: Option<&Type>, storage_type: &'a Type) -> Result<TypenameType<'a>, anyhow::Error> {
     let mut TT = incomplete_typename_type(name, supertype);
     TT.complete_set(storage_type, TypenameFlags::TNF_Plain as u32)?;
     return Ok(TT)
 }
 
-pub fn unique_typename_type<'a>(name: &str, supertype: Option<&Type>, storage_type: &Type) -> Result<TypenameType<'a>, anyhow::Error> {
+pub fn unique_typename_type<'a>(name: &str, supertype: Option<&Type>, storage_type: &'a Type) -> Result<TypenameType<'a>, anyhow::Error> {
     let mut TT = incomplete_typename_type(name, supertype);
     TT.complete_set(storage_type, 0)?;
     return Ok(TT)
