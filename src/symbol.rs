@@ -70,12 +70,14 @@ pub struct Symbol(pub u64);
 
 
 impl Symbol {
-    pub(crate) fn init_symbols(symbols: &mut BiMap<String, Symbol>) {
+    pub fn init_symbols(symbols: &mut BiMap<String, Symbol>) {
         let SCOPES_SYMBOLS = vec![(String::from("TIMER_Main"), Symbol(KnownSymbol::TIMER_Main as u64)), (String::from(""), Symbol(KnownSymbol::SYM_Unnamed as u64)), (String::from("?corrupted?"), Symbol(KnownSymbol::SYM_Corrupted as u64)), (String::from("fn"), Symbol(KnownSymbol::KW_Fn as u64))];
         symbols.extend(SCOPES_SYMBOLS.into_iter());
         thread::sleep(time::Duration::from_millis(100)); //Testing
     }
-
+    pub fn value(&self) -> u64 {
+        todo!()
+    }
     //Maybe constructors but maybe unnecessary
 }
 
@@ -854,5 +856,4 @@ pub enum KnownSymbol {
 }
 
 impl KnownSymbol {
-
 }
