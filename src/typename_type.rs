@@ -1,4 +1,4 @@
-use crate::types::{Type, is_plain};
+use crate::{types::{Type, is_plain, B_Types}, symbol::Symbol};
 use anyhow::{anyhow};
 use derive_more::{Display};
 enum TypenameFlags {
@@ -16,7 +16,8 @@ pub struct TypenameType<'a> {
 }
 
 impl <'a>TypenameType<'a> {
-    fn new() -> TypenameType<'a> {
+    fn new(name: &str, _super_type: Option<&Type>) -> TypenameType<'a> {
+        //let newname = Symbol
         todo!()
     }
     pub fn name(&self) -> &str {
@@ -35,13 +36,13 @@ impl <'a>TypenameType<'a> {
     pub fn complete_set(&mut self, _type: &'a Type, mut _flags: u32) -> Result<(), anyhow::Error> {
         _flags |= TypenameFlags::TNF_Complete as u32;
         if self.is_complete() {
-            todo!()
+            anyhow!("StorageTypeExpected");
         }
         if false { //isa<TypenameType>(_type)
             todo!()
         }
         if (_flags & TypenameFlags::TNF_Plain as u32) != 0 && !is_plain(_type) {
-            todo!()
+            anyhow!("PlainStorageTypeExpected");
         }
         self.storage_type = Some(_type);
         self.flags = _flags;
@@ -56,10 +57,9 @@ impl <'a>TypenameType<'a> {
     fn is_plain(&self) -> bool {
         return self.is_opaque() || ((self.flags & TypenameFlags::TNF_Plain as u32) == TypenameFlags::TNF_Plain as u32)
     }
-    fn super_type(&self) -> Option<&Type> {
+    fn super_type(&'a self, types: &'a B_Types) -> Option<&Type> {
         if self.super_type == None {
-            //return TYPE_Typename
-            todo!()
+            return Some(&types.TYPE_Typename.this);
         }
         return self.super_type
     }
@@ -67,7 +67,7 @@ impl <'a>TypenameType<'a> {
 
 // always generates a new type
 pub fn incomplete_typename_type<'a>(name: &str, supertype: Option<&Type>) -> TypenameType<'a> {
-    return TypenameType::new()//{_name: name, super_type: Some(supertype)};
+    return TypenameType::new(name, supertype)
 }
 
 pub fn opaque_typename_type<'a>(name: &str, supertype: Option<&Type>) -> TypenameType<'a> {
