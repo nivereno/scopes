@@ -126,7 +126,7 @@ impl <'a>Default for B_Types<'a> {
             TYPE_Aggregate: opaque_typename_type("aggregate", None), 
             TYPE_OpaquePointer: opaque_typename_type("opaquepointer", None), 
             TYPE_Pointer: opaque_typename_type("pointer", None),
-            _TypePtr: native_ro_pointer_type(&opaque_typename_type("_type", None).this),
+            _TypePtr: native_ro_pointer_type(&opaque_typename_type("_type", None).this).to_owned(),
             TYPE__Value: plain_typename_type("_Value", None, native_opaque_pointer_type(&opaque_typename_type("__Value", None).this)).unwrap(),
             TYPE_Closure: plain_typename_type("Closure", None, native_opaque_pointer_type(&opaque_typename_type("_Closure", None).this)).unwrap(),
             TYPE_Scope: plain_typename_type("Scope", None, native_opaque_pointer_type(&opaque_typename_type("_Scope", None).this)).unwrap(),

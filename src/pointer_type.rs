@@ -55,27 +55,27 @@ fn required_flags_for_storage_class(storage_class: Symbol) -> u64 {
         _ => return PointerTypeFlags::PTF_NonWritable as u64 | PointerTypeFlags::PTF_NonReadable as u64
     }
 }
-pub fn pointer_type(element_type: &Type, flags: u64, storage_class: Symbol) -> &Type {
+pub fn pointer_type(element_type: &Type, flags: u64, storage_class: Symbol) -> &'static Type {
 
     todo!()
 }
 pub fn native_opaque_pointer_type(element_type: &Type) -> &'static Type {
-    todo!()
+    return pointer_type(element_type, PointerTypeFlags::PTF_NonWritable as u64 | PointerTypeFlags::PTF_NonReadable as u64, Symbol(KnownSymbol::SYM_Unnamed as u64));
 }
-pub fn native_ro_pointer_type(element_type: &Type) -> Type {
-    todo!()
+pub fn native_ro_pointer_type(element_type: &Type) -> &Type {
+    return pointer_type(element_type, PointerTypeFlags::PTF_NonWritable as u64, Symbol(KnownSymbol::SYM_Unnamed as u64));
 }
-pub fn native_pointer_type(element_type: &Type) -> Type {
-    todo!()
+pub fn native_pointer_type(element_type: &Type) -> &Type {
+    return pointer_type(element_type, 0, Symbol(KnownSymbol::SYM_Unnamed as u64));
 }
-pub fn local_ro_pointer_type(element_type: &Type) -> Type {
-    todo!()
+pub fn local_ro_pointer_type(element_type: &Type) -> &Type {
+    return pointer_type(element_type, PointerTypeFlags::PTF_NonWritable as u64, Symbol(KnownSymbol::SYM_SPIRV_StorageClassFunction as u64));
 }
-pub fn local_pointer_type(element_type: &Type) -> Type {
-    todo!()
+pub fn local_pointer_type(element_type: &Type) -> &Type {
+    return pointer_type(element_type, 0, Symbol(KnownSymbol::SYM_SPIRV_StorageClassFunction as u64));
 }
-pub fn static_pointer_type(element_type: &Type) -> Type {
-    todo!()
+pub fn static_pointer_type(element_type: &Type) -> &Type {
+    return pointer_type(element_type, 0, Symbol(KnownSymbol::SYM_SPIRV_StorageClassFunction as u64));
 }
 
 fn pointer_flags_is_readable(flags: u64) -> bool {
