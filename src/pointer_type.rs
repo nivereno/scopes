@@ -1,4 +1,4 @@
-use crate::{types::Type, symbol::{Symbol, KnownSymbol}};
+use crate::{types::{Type, is_opaque}, symbol::{Symbol, KnownSymbol}};
 
 pub struct PointerType<'a> {
     this: &'a Type,
@@ -20,7 +20,17 @@ enum PointerTypeFlags {
     PTF_NonWritable = 1 << 1,
     PTF_NonReadable = 1 << 2
 }
-
+fn required_flags_for_element_type(element_type: &Type) -> u64 {
+    // element_type = strip_qualifiers(elemnt_type);
+    //if (isa<TypenameType>(element_type)
+    //    && !cast<TypenameType>(element_type)->is_complete())
+    //    return 0;
+    if is_opaque(element_type) {
+        return PointerTypeFlags::PTF_NonReadable as u64 | PointerTypeFlags::PTF_NonWritable as u64;
+    }
+    return 0;
+    todo!()
+}
 fn required_flags_for_storage_class(storage_class: Symbol) -> u64 {
     let SYM_Unnamed = KnownSymbol::SYM_Unnamed as u64;
     let SYM_SPIRV_StorageClassUniformConstant = KnownSymbol::SYM_SPIRV_StorageClassUniformConstant as u64;
@@ -55,7 +65,10 @@ fn required_flags_for_storage_class(storage_class: Symbol) -> u64 {
         _ => return PointerTypeFlags::PTF_NonWritable as u64 | PointerTypeFlags::PTF_NonReadable as u64
     }
 }
-pub fn pointer_type(element_type: &Type, flags: u64, storage_class: Symbol) -> &'static Type {
+pub fn pointer_type(element_type: &Type, mut flags: u64, storage_class: Symbol) -> &'static Type {
+    flags |= required_flags_for_storage_class(storage_class);
+    flags |= required_flags_for_element_type(element_type);
+    
 
     todo!()
 }

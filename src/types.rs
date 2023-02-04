@@ -252,7 +252,7 @@ impl Type {
     }
 }
 
-fn is_opaque(T: &Type) -> bool {
+pub fn is_opaque(T: &Type) -> bool {
     match T.kind() {
         TypeKind::TK_Qualify => {todo!()},//return is_opaque(cast<QualifyType>(T)->type)},
         TypeKind::TK_Typename => {
