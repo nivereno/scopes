@@ -1,5 +1,5 @@
 use crate::types::{Type, B_Types};
-
+use anyhow::{anyhow, Result, Ok};
 
 pub struct FunctionType<'a> {
     this: &'a Type,
@@ -22,8 +22,11 @@ impl <'a>FunctionType<'a> {
     fn vararg(&self) -> bool {
         return self.flags & FF_VARIADIC != 0
     }
-    fn type_at_index(i: usize) -> Option<&'a Type> {
-        todo!()
+    fn type_at_index(&self, i: usize) -> Result<&'a Type, anyhow::Error> {
+        if self.argument_types.len() > i {
+            return Ok(self.argument_types[i]);
+        }
+        return Err(anyhow!("Index out of range in argument_types"))
     }
 
 }
@@ -43,12 +46,15 @@ pub fn raising_function_type_123<'a>() -> &'a Type {
 pub fn function_type<'a>() -> &'a Type {
     todo!()
 }
-pub fn is_function_pointer() -> bool {
+pub fn is_function_pointer(t: &Type) -> bool {
     todo!()
 }
 pub fn extract_function_type<'a>() -> &'a FunctionType<'a> {
     todo!()
 }
-pub fn varify_function_pointer() -> Result<(), anyhow::Error> {
-    todo!()
+pub fn varify_function_pointer(t: &Type) -> Result<(), anyhow::Error> {
+    if !is_function_pointer(t) {
+        return Err(anyhow!("FunctionPointerExpected"));
+    }
+    return Ok(())
 }
