@@ -27,14 +27,14 @@ pub enum TypeKind {
 }
 
 #[derive(PartialEq, Clone)]
-struct TypeEntry {
+pub struct TypeEntry {
     expr: ValueRef,
     doc: Option<String>
 }
 #[derive(PartialEq, Clone)]
 pub struct Type {
-    kind: TypeKind,
-    symbols: RefCell<HashMap<Symbol, TypeEntry>>
+    pub kind: TypeKind,
+    pub symbols: RefCell<HashMap<Symbol, TypeEntry>>
 }
 impl Default for Type {
     fn default() -> Self {

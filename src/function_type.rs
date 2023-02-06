@@ -36,15 +36,15 @@ pub fn canonicalize_unique_types() {
 pub fn canonicalize_argument_types() {
 
 }
-pub fn raising_function_type<'a>() -> &'a Type {
+pub fn raising_function_type<'a>(except_type: &Type, return_type: &Type, argument_types: &Vec<&Type>, flags: u32) -> &'a Type {
     todo!()
 }
-pub fn raising_function_type_123<'a>() -> &'a Type {
+pub fn raising_function_type_default<'a>(types: B_Types, return_type: &Type, argument_types: &Vec<&Type>, flags: u32) -> &'a Type {
     //overload
-    todo!()
+    return raising_function_type(&types.TYPE_Error.this, return_type, argument_types, flags)
 }
-pub fn function_type<'a>() -> &'a Type {
-    todo!()
+pub fn function_type<'a>(types: B_Types, return_type: &Type, argument_types: &Vec<&Type>, flags: u32) -> &'a Type {
+    return raising_function_type(&types.TYPE_NoReturn.this, return_type, argument_types, flags)
 }
 pub fn is_function_pointer(t: &Type) -> bool {
     todo!()

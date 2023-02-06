@@ -1,6 +1,6 @@
-use std::io::prelude::*;
+use std::{io::prelude::*, ops::Add};
 use core::cell::RefCell;
-use std::{cell::Ref, cmp::Ordering, fs::{self, DirEntry, remove_file, File}, ops::AddAssign, collections::hash_map::DefaultHasher, hash::Hasher, fmt::format};
+use std::{cell::Cell, cmp::Ordering, fs::{self, DirEntry, remove_file, File}, ops::AddAssign, collections::hash_map::DefaultHasher, hash::Hasher, fmt::format};
 
 use flate2::write::ZlibEncoder;
 
@@ -12,8 +12,8 @@ const  SCOPES_FILE_CACHE_KEY_PATTERN: &'static str = "{}/{}.cache.key";
 const  SCOPES_FILE_CACHE_PATTERN: &'static str = "{}/{}.cache";
 
 
-thread_local!(static cache_misses: RefCell<usize> = RefCell::new(0));
-thread_local!(static cache_inited: RefCell<bool> = RefCell::new(false));
+thread_local!(static cache_misses: Cell<usize> = Cell::new(0));
+thread_local!(static cache_inited: Cell<bool> = Cell::new(false));
 thread_local!(static cache_dir: RefCell<String> = RefCell::new(String::new()));
 
 fn get_cache_misses() -> usize {
@@ -49,7 +49,7 @@ pub fn perform_thanos_finger_snap(num_files: usize) -> Result<(), std::io::Error
 
     //let mut cache_entries = Vec::new();//: Vec<CacheEntry> = Vec::with_capacity(1024);
     let Ok(cache_dir_iter) = fs::read_dir(cache_dir.with(|dir| {
-        return dir.borrow().clone()
+        return dir.borrow().clone();
     })) else {return Ok(())};
     //cache_entries = cache_dir_iter.collect();
     let mut to_delete = num_files / 2;
@@ -90,7 +90,7 @@ pub fn check_cache_size() -> Result<(), std::io::Error> {
 }
 pub fn init_cache() {
     if cache_inited.with(|inited| {
-        if inited.borrow().eq(&true) {
+        if inited.get().eq(&true) {
             return true
         }
         inited.replace(true);
@@ -147,7 +147,7 @@ fn get_cache_file(key: &str) -> Option<String> {
             }
             
             cache_misses.with(|misses| {
-                misses.borrow_mut().add_assign(1);
+                misses.set(misses.get().add(1));
             });
             return None;
     });

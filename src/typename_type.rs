@@ -1,4 +1,6 @@
-use crate::{types::{Type, is_plain, B_Types}, symbol::Symbol};
+use std::{collections::HashMap, cell::RefCell};
+
+use crate::{types::{Type, is_plain, B_Types, TypeKind}, symbol::{Symbol, SymbolMap, self}};
 use anyhow::{anyhow};
 use derive_more::{Display};
 enum TypenameFlags {
@@ -17,7 +19,9 @@ pub struct TypenameType<'a> {
 
 impl <'a>TypenameType<'a> {
     fn new(name: &str, _super_type: Option<&Type>) -> TypenameType<'a> {
-        //let newname = Symbol
+        let this = Type{ kind: TypeKind::TK_Typename, symbols: RefCell::new(HashMap::new()) };
+        //let newname = symbols.add_symbol(name);
+        //return TypenameType { this: this, storage_type: None, super_type: Some(_super_type), _name: newname, flags: 0 }
         todo!()
     }
     pub fn name(&self) -> &str {
