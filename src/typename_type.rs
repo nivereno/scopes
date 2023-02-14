@@ -1,8 +1,10 @@
-use std::{collections::HashMap, cell::RefCell};
+use std::{collections::HashMap, collections::HashSet, cell::RefCell};
 
 use crate::{types::{Type, is_plain, B_Types, TypeKind}, symbol::{Symbol, SymbolMap, self}};
 use anyhow::{anyhow};
 use derive_more::{Display};
+
+thread_local! {static used_names: RefCell<HashSet<Symbol>> = RefCell::new(HashSet::new())}
 enum TypenameFlags {
     TNF_Plain = 1 << 0,
     TNF_Complete = 1 << 1,

@@ -19,6 +19,7 @@ mod cache;
 mod typename_type;
 mod pointer_type;
 mod function_type;
+mod gc;
 use anchor::Anchor;
 
 fn main() {
