@@ -5,7 +5,7 @@ use crate::{symbol::{Symbol, KnownSymbol}, valueref::ValueRef, typename_type::{T
 extern crate derive_more;
 use anyhow::anyhow;
 use derive_more::{Display};
-#[derive(PartialEq, Clone, Display)]
+#[derive(PartialEq, Hash, Clone, Display)]
 pub enum TypeKind {
     /* abstract types */
     TK_Qualify,

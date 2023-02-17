@@ -2,7 +2,7 @@ use crate::symbol::Symbol;
 use crate::symbol::SymbolMap;
 
 
-#[derive(PartialEq, Clone)]
+#[derive(PartialEq, Eq, Hash, Clone)]
 pub struct Anchor {
     path: Symbol,
     lineno: usize,

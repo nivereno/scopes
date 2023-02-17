@@ -22,32 +22,6 @@ pub fn tracked_malloc(size: usize) -> *mut c_void {
 ////TODO not sure about this someone should check
 pub fn find_allocation(srcptr: *mut c_void, start: &mut *mut c_void, size: &mut usize) -> bool {
     return tracked_allocations.with(|tracked| {
-        /*let tracked = tracked.borrow();
-        let mut this = tracked.iter();
-        if let Some(pair) = this.next() {
-            if pair.0 > srcptr {
-                return false;
-            }
-            let next = this.clone();
-            if let Some(next_values) = next.next() {
-                if next_values.0 > srcptr {
-                    start = pair.0;
-                    size = pair.1;
-                    return srcptr >= start //&& srcptr as *mut u8 < (start as *mut u8 + size as u8);
-                }
-            }
-            while let Some(pair) = this.next() {
-                if let Some(next_values) = next.next() {
-                    if next_values.0 > srcptr {
-
-                    }
-                }
-            }
-            start = this.0;
-            size = this.1;
-            return srcptr >= start //&& srcptr as *mut u8 < (start as *mut u8 + size as u8);
-        }
-        return false;*/
         let tracked = tracked.borrow();
         let mut this = tracked.iter().peekable();
         while let Some(pair) = this.next() {

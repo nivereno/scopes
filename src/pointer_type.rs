@@ -1,10 +1,22 @@
+use std::{cell::RefCell, collections::{HashSet, HashMap}};
+
 use crate::{types::{Type, is_opaque}, symbol::{Symbol, KnownSymbol}};
 
+thread_local!(static pointers: RefCell<HashSet<&'static PointerType<'static>>> = RefCell::new(HashSet::new()));
+#[derive(PartialEq)]
 pub struct PointerType<'a> {
     this: &'a Type,
     element_type: &'a Type,
     flags: u64,
     storage_class: Symbol
+}
+
+impl<'a> std::hash::Hash for PointerType<'a> {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        //self.element_type.hash(state);
+        self.flags.hash(state);
+        self.storage_class.hash(state);
+    }
 }
 
 impl <'a>PointerType<'a> {
@@ -13,6 +25,9 @@ impl <'a>PointerType<'a> {
     }
     pub fn is_writable(&self) -> bool {
         return pointer_flags_is_writable(self.flags)
+    }
+    pub fn size() -> usize {
+        return std::mem::size_of::<usize>()
     }
 }
 
@@ -31,7 +46,7 @@ fn required_flags_for_element_type(element_type: &Type) -> u64 {
     return 0;
     todo!()
 }
-fn required_flags_for_storage_class(storage_class: Symbol) -> u64 {
+fn required_flags_for_storage_class(storage_class: &Symbol) -> u64 {
     let SYM_Unnamed = KnownSymbol::SYM_Unnamed as u64;
     let SYM_SPIRV_StorageClassUniformConstant = KnownSymbol::SYM_SPIRV_StorageClassUniformConstant as u64;
     let SYM_SPIRV_StorageClassInput = KnownSymbol::SYM_SPIRV_StorageClassInput as u64;
@@ -66,10 +81,13 @@ fn required_flags_for_storage_class(storage_class: Symbol) -> u64 {
     }
 }
 pub fn pointer_type(element_type: &Type, mut flags: u64, storage_class: Symbol) -> &'static Type {
-    flags |= required_flags_for_storage_class(storage_class);
+    flags |= required_flags_for_storage_class(&storage_class);
     flags |= required_flags_for_element_type(element_type);
-    
-
+    //TODO might be wrong C macros
+    let key = PointerType{ this: &Type { kind: crate::types::TypeKind::TK_Pointer, symbols: RefCell::new(HashMap::new()) }, element_type, flags, storage_class };
+    pointers.with(|pointers_set| {
+        //pointers_set.borrow().contains()
+    });
     todo!()
 }
 pub fn native_opaque_pointer_type(element_type: &Type) -> &'static Type {
