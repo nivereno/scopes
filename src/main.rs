@@ -20,6 +20,8 @@ mod typename_type;
 mod pointer_type;
 mod function_type;
 mod gc;
+mod qualify_type;
+mod refer_qualifier;
 use anchor::Anchor;
 
 fn main() {

@@ -1,3 +1,7 @@
+use std::{cell::RefCell, collections::HashSet};
+
+use crate::types::Type;
+
 
 /*
 
@@ -14,12 +18,7 @@ Qualifier::Qualifier(QualifierKind kind)
 // QUALIFY
 //------------------------------------------------------------------------------
 
-namespace QualifySet {
-struct Hash {
-    std::size_t operator()(const QualifyType *s) const {
-        return s->prehash;
-    }
-};
+
 
 struct KeyEqual {
     bool operator()( const QualifyType *lhs, const QualifyType *rhs ) const {
@@ -33,38 +32,16 @@ struct KeyEqual {
     }
 };
 } // namespace QualifySet
-
-static absl::flat_hash_set<const QualifyType *, QualifySet::Hash, QualifySet::KeyEqual> qualifys;
+*/
+thread_local!(static qualifys: RefCell<HashSet<&'static QualifyType<'static>>> = RefCell::new(HashSet::new()));
 
 //------------------------------------------------------------------------------
-
-void QualifyType::stream_name(StyledStream &ss) const {
-    for (int i = QualifierCount; i-- > 0;) {
-        auto entry = qualifiers[i];
-        if (!entry)
-            continue;
-        switch(entry->kind()) {
-#define T(NAME, BNAME, CLASS) \
-        case NAME: cast<CLASS>(entry)->stream_prefix(ss); break;
-SCOPES_QUALIFIER_KIND()
-#undef T
-        default: break;
-        }
-    }
-    stream_type_name(ss, type);
-    for (int i = 0; i < QualifierCount; ++i) {
-        auto entry = qualifiers[i];
-        if (!entry)
-            continue;
-        switch(entry->kind()) {
-#define T(NAME, BNAME, CLASS) \
-        case NAME: cast<CLASS>(entry)->stream_postfix(ss); break;
-SCOPES_QUALIFIER_KIND()
-#undef T
-        default: break;
-        }
-    }
+struct QualifyType<'a> {
+    T: &'a Type,
+    mask: u32,
+    //qualifier
 }
+/*
 
 QualifyType::QualifyType(const Type *_type, const Qualifier * const *_qualifiers)
     : Type(TK_Qualify), type(_type), mask(0) {
@@ -81,6 +58,17 @@ QualifyType::QualifyType(const Type *_type, const Qualifier * const *_qualifiers
 }
 
 //------------------------------------------------------------------------------
+*/
+enum QualifierKind {
+
+}
+enum QualifierMask {
+
+}
+pub struct Qualifier {
+    _kind: QualifierKind
+}
+/*
 
 static const Type *_qualify(const Type *type, const Qualifier * const * quals) {
     QualifyType key(type, quals);
