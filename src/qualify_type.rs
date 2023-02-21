@@ -59,14 +59,20 @@ QualifyType::QualifyType(const Type *_type, const Qualifier * const *_qualifiers
 
 //------------------------------------------------------------------------------
 */
-enum QualifierKind {
-
+pub enum QualifierKind {
+    QK_Refer, // TODO
 }
 enum QualifierMask {
 
 }
 pub struct Qualifier {
     _kind: QualifierKind
+}
+
+impl  Qualifier {
+    pub fn new(kind: QualifierKind) -> Qualifier {
+        return Qualifier { _kind: kind }
+    }
 }
 /*
 
