@@ -35,7 +35,7 @@ enum PointerTypeFlags {
     PTF_NonWritable = 1 << 1,
     PTF_NonReadable = 1 << 2
 }
-fn required_flags_for_element_type(element_type: &Type) -> u64 {
+pub fn required_flags_for_element_type(element_type: &Type) -> u64 {
     // element_type = strip_qualifiers(elemnt_type);
     //if (isa<TypenameType>(element_type)
     //    && !cast<TypenameType>(element_type)->is_complete())
@@ -46,7 +46,7 @@ fn required_flags_for_element_type(element_type: &Type) -> u64 {
     return 0;
     todo!()
 }
-fn required_flags_for_storage_class(storage_class: &Symbol) -> u64 {
+pub fn required_flags_for_storage_class(storage_class: &Symbol) -> u64 {
     let SYM_Unnamed = KnownSymbol::SYM_Unnamed as u64;
     let SYM_SPIRV_StorageClassUniformConstant = KnownSymbol::SYM_SPIRV_StorageClassUniformConstant as u64;
     let SYM_SPIRV_StorageClassInput = KnownSymbol::SYM_SPIRV_StorageClassInput as u64;

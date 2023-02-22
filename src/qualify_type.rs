@@ -59,12 +59,14 @@ QualifyType::QualifyType(const Type *_type, const Qualifier * const *_qualifiers
 
 //------------------------------------------------------------------------------
 */
+#[derive(Hash, PartialEq, Eq, Clone)]
 pub enum QualifierKind {
     QK_Refer, // TODO
 }
 enum QualifierMask {
 
 }
+#[derive(Hash, PartialEq, Eq, Clone)]
 pub struct Qualifier {
     _kind: QualifierKind
 }
@@ -73,6 +75,10 @@ impl  Qualifier {
     pub fn new(kind: QualifierKind) -> Qualifier {
         return Qualifier { _kind: kind }
     }
+}
+
+pub fn qualify<'a>(T: &'a Type, qualifers: Vec<&Qualifier>/*, qualifiers: &Qualifiers*/) -> &'a Type {
+    todo!()
 }
 /*
 

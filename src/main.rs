@@ -22,6 +22,7 @@ mod function_type;
 mod gc;
 mod qualify_type;
 mod refer_qualifier;
+mod qualifier;
 use anchor::Anchor;
 
 fn main() {
