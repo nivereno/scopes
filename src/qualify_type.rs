@@ -78,6 +78,10 @@ impl  Qualifier {
 }
 
 pub fn qualify<'a>(T: &'a Type, qualifers: Vec<&Qualifier>/*, qualifiers: &Qualifiers*/) -> &'a Type {
+    if qualifers.is_empty() {
+        return T
+    }
+    
     todo!()
 }
 /*
