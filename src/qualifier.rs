@@ -1,17 +1,20 @@
-use crate::types::Type;
+use crate::{types::Type, all_types::All_types, qualify_type::find_qualifier};
 
 
 
-pub fn has_qualifier(T: &Type) -> bool {
+pub fn has_qualifier(T: All_types) -> bool {
     todo!()
 }
-pub fn try_qualifier(T: &Type) -> Option<&Type> {
- todo!()
+pub fn try_qualifier(T: All_types) -> Option<All_types> {
+    if let Some(q) = find_qualifier(T, ) {
+
+    }
+    return None
 }
-pub fn get_qualifier(T: &Type) ->  &Type {
+pub fn get_qualifier(T: All_types) ->  &Type {
     todo!()
 }
-pub fn strip_qualifier(T: &Type) -> &Type {
+pub fn strip_qualifier(T: All_types) -> &Type {
     todo!()
 }
 

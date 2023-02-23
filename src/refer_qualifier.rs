@@ -1,6 +1,6 @@
 use std::{cell::RefCell, collections::HashSet};
 
-use crate::{qualify_type::{Qualifier, QualifierKind, qualify}, symbol::{Symbol, KnownSymbol}, types::Type, pointer_type::{pointer_type, required_flags_for_storage_class, required_flags_for_element_type}, qualifier::{has_qualifier, try_qualifier}};
+use crate::{qualify_type::{Qualifier, QualifierKind, qualify}, symbol::{Symbol, KnownSymbol}, types::Type, pointer_type::{pointer_type, required_flags_for_storage_class, required_flags_for_element_type}, qualifier::{has_qualifier, try_qualifier}, all_types::All_types};
 
 thread_local!(static refers: RefCell<HashSet<Box<ReferQualifier>>> = RefCell::new(HashSet::new()));
 
@@ -34,21 +34,21 @@ pub fn refer_type(T: &Type, mut flags: u64, storage_class: Symbol) -> &Type {
         return qualify(T, vec!(&qualifiers))
     });
 }
-pub fn refer_flags(T: &Type) -> u64 {
+pub fn refer_flags(T: All_types) -> u64 {
     if let Some(q) = try_qualifier(T) {
         //return q.flags
         todo!()
     }
     return 0
 }
-pub fn refer_storage_class(T: &Type) -> Symbol {
+pub fn refer_storage_class(T: All_types) -> Symbol {
     if let Some(q) = try_qualifier(T) {
         //return q.storage_class
         todo!()
     }  
     return Symbol(KnownSymbol::SYM_Unnamed as u64)
 }
-pub fn is_reference(T: &Type) -> bool {
+pub fn is_reference(T: All_types) -> bool {
     return has_qualifier(T);
     todo!()
 }

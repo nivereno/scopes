@@ -23,6 +23,7 @@ mod gc;
 mod qualify_type;
 mod refer_qualifier;
 mod qualifier;
+mod all_types;
 use anchor::Anchor;
 
 fn main() {

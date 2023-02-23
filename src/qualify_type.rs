@@ -1,6 +1,6 @@
 use std::{cell::RefCell, collections::HashSet};
 
-use crate::types::Type;
+use crate::{types::Type, all_types::All_types};
 
 
 /*
@@ -36,7 +36,7 @@ struct KeyEqual {
 thread_local!(static qualifys: RefCell<HashSet<&'static QualifyType<'static>>> = RefCell::new(HashSet::new()));
 
 //------------------------------------------------------------------------------
-struct QualifyType<'a> {
+pub struct QualifyType<'a> {
     T: &'a Type,
     mask: u32,
     //qualifier
@@ -81,7 +81,7 @@ pub fn qualify<'a>(T: &'a Type, qualifers: Vec<&Qualifier>/*, qualifiers: &Quali
     if qualifers.is_empty() {
         return T
     }
-    
+
     todo!()
 }
 /*
@@ -132,7 +132,11 @@ const Qualifier *get_qualifier(const Type *type, QualifierKind kind) {
     assert(q);
     return q;
 }
-
+*/
+pub fn find_qualifier(T: All_types, kind: QualifierKind) -> Option<&Qualifier> {
+    todo!()
+}
+/*
 const Qualifier *find_qualifier(const Type *type, QualifierKind kind) {
     if (isa<QualifyType>(type)) {
         auto qt = cast<QualifyType>(type);
