@@ -1,6 +1,6 @@
 use std::{cell::RefCell, collections::{HashSet, HashMap}};
 
-use crate::{types::{Type, is_opaque}, symbol::{Symbol, KnownSymbol}};
+use crate::{types::{Type, is_opaque}, symbol::{Symbol, KnownSymbol}, all_types::All_types};
 
 thread_local!(static pointers: RefCell<HashSet<&'static PointerType<'static>>> = RefCell::new(HashSet::new()));
 #[derive(PartialEq)]
@@ -35,14 +35,14 @@ enum PointerTypeFlags {
     PTF_NonWritable = 1 << 1,
     PTF_NonReadable = 1 << 2
 }
-pub fn required_flags_for_element_type(element_type: &Type) -> u64 {
+pub fn required_flags_for_element_type(element_type: All_types) -> u64 {
     // element_type = strip_qualifiers(elemnt_type);
     //if (isa<TypenameType>(element_type)
     //    && !cast<TypenameType>(element_type)->is_complete())
     //    return 0;
-    if is_opaque(element_type) {
-        return PointerTypeFlags::PTF_NonReadable as u64 | PointerTypeFlags::PTF_NonWritable as u64;
-    }
+    //if is_opaque(element_type) {
+      //  return PointerTypeFlags::PTF_NonReadable as u64 | PointerTypeFlags::PTF_NonWritable as u64;
+    //}
     return 0;
     todo!()
 }

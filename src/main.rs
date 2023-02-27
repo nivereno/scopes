@@ -27,8 +27,8 @@ mod all_types;
 use anchor::Anchor;
 
 fn main() {
-    let mut types = types::B_Types::default();
-    let mut types = types::B_Types::new(&mut types);
+    //let mut types = types::B_Types::default();
+    //let mut types = types::B_Types::new(&mut types);
 
     let mut file = File::open("S.txt").unwrap();
     let U8vec = std::fs::read("S.txt").unwrap();

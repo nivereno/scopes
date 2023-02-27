@@ -21,7 +21,7 @@ impl ReferQualifier {
     }
 }
 
-pub fn refer_type(T: &Type, mut flags: u64, storage_class: Symbol) -> &Type {
+pub fn refer_type(T: All_types, mut flags: u64, storage_class: Symbol) -> All_types {
     flags |= required_flags_for_storage_class(&storage_class);
     flags |= required_flags_for_element_type(T);
     return refers.with(|set| {

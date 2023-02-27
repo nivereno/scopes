@@ -39,7 +39,12 @@ thread_local!(static qualifys: RefCell<HashSet<&'static QualifyType<'static>>> =
 pub struct QualifyType<'a> {
     T: &'a Type,
     mask: u32,
-    //qualifier
+    qualifiers: Vec<&'a Qualifier>
+}
+impl QualifyType<'_> {
+    fn kind(&self) -> usize {
+        todo!() //wrong
+    }
 }
 /*
 
@@ -61,10 +66,15 @@ QualifyType::QualifyType(const Type *_type, const Qualifier * const *_qualifiers
 */
 #[derive(Hash, PartialEq, Eq, Clone)]
 pub enum QualifierKind {
-    QK_Refer, // TODO
+    QK_Refer,
+    QK_Unique,
+    QK_View,
+    QK_Mutate,
+    QK_Key
 }
 enum QualifierMask {
-
+    QM_UniquenessTags = (1 << QualifierKind::QK_View as u64) | (1 << QualifierKind::QK_Unique as u64) | (1 << QualifierKind::QK_Mutate as u64),
+    QM_Annotations = 1 << QualifierKind::QK_Key as u64
 }
 #[derive(Hash, PartialEq, Eq, Clone)]
 pub struct Qualifier {
@@ -77,13 +87,6 @@ impl  Qualifier {
     }
 }
 
-pub fn qualify<'a>(T: &'a Type, qualifers: Vec<&Qualifier>/*, qualifiers: &Qualifiers*/) -> &'a Type {
-    if qualifers.is_empty() {
-        return T
-    }
-
-    todo!()
-}
 /*
 
 static const Type *_qualify(const Type *type, const Qualifier * const * quals) {
@@ -117,42 +120,40 @@ const Type *qualify(const Type *type, const Qualifiers &qualifiers) {
     return _qualify(type, quals);
 }
 
-const Type *copy_qualifiers(const Type *type, const Type *from) {
-    auto qt = dyn_cast<QualifyType>(from);
-    if (qt) {
-        return _qualify(type, qt->qualifiers);
-    }
-    return type;
-}
-
-const Qualifier *get_qualifier(const Type *type, QualifierKind kind) {
-    auto qt = cast<QualifyType>(type);
-    assert(kind < QualifierCount);
-    auto q = qt->qualifiers[kind];
-    assert(q);
-    return q;
-}
 */
-pub fn find_qualifier(T: All_types, kind: QualifierKind) -> Option<&Qualifier> {
+pub fn qualify<'a>(T: All_types, qualifiers: Vec<&Qualifier>) -> All_types<'a> {
     todo!()
 }
-/*
-const Qualifier *find_qualifier(const Type *type, QualifierKind kind) {
-    if (isa<QualifyType>(type)) {
-        auto qt = cast<QualifyType>(type);
-        assert(kind < QualifierCount);
-        return qt->qualifiers[kind];
+pub fn _qualify<'a>(T: All_types, quals: Vec<&Qualifier>) -> All_types<'a> {
+    todo!()
+}
+pub fn copy_qualifiers<'a>(T: All_types<'a>, from: All_types) -> All_types<'a> {
+    if let All_types::qualify_type(from) = from {
+        return _qualify(T, from.qualifiers.clone())
     }
-    return nullptr;
+    return T
 }
 
-bool has_qualifiers(const Type *T, uint32_t mask) {
-    if (isa<QualifyType>(T)) {
-        auto qt = cast<QualifyType>(T);
-        return ((qt->mask & mask) == mask);
+pub fn get_qualifier(T: All_types) -> &Qualifier {
+    if let All_types::qualify_type(T) = T {
+        return T.qualifiers[T.kind() as usize];
     }
-    return false;
+    panic!()
 }
+pub fn find_qualifier(T: All_types) -> Option<&Qualifier> {
+    if let All_types::qualify_type(T) = T {
+        return Some(T.qualifiers[T.kind() as usize]);
+    }
+    return None
+}
+pub fn has_qualifiers(T: All_types, mask: u32) -> bool {
+    if let All_types::qualify_type(T) = T {
+        return (T.mask & mask) == mask
+    }
+    return false
+}
+
+/*
 
 const Type *strip_qualifiers(const Type *T, uint32_t mask) {
     if (isa<QualifyType>(T)) {

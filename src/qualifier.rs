@@ -6,7 +6,7 @@ pub fn has_qualifier(T: All_types) -> bool {
     todo!()
 }
 pub fn try_qualifier(T: All_types) -> Option<All_types> {
-    if let Some(q) = find_qualifier(T, ) {
+    if let Some(q) = find_qualifier(T) {
 
     }
     return None
