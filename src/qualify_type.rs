@@ -70,7 +70,8 @@ pub enum QualifierKind {
     QK_Unique,
     QK_View,
     QK_Mutate,
-    QK_Key
+    QK_Key,
+    QualifierCount
 }
 enum QualifierMask {
     QM_UniquenessTags = (1 << QualifierKind::QK_View as u64) | (1 << QualifierKind::QK_Unique as u64) | (1 << QualifierKind::QK_Mutate as u64),
@@ -84,6 +85,10 @@ pub struct Qualifier {
 impl  Qualifier {
     pub fn new(kind: QualifierKind) -> Qualifier {
         return Qualifier { _kind: kind }
+    }
+
+    fn kind(&self) -> usize {
+        todo!()
     }
 }
 
@@ -121,8 +126,24 @@ const Type *qualify(const Type *type, const Qualifiers &qualifiers) {
 }
 
 */
-pub fn qualify<'a>(T: All_types, qualifiers: Vec<&Qualifier>) -> All_types<'a> {
-    todo!()
+pub fn qualify<'a>(T: All_types<'a>, qualifiers: Vec<&Qualifier>) -> All_types<'a> {
+    if qualifiers.is_empty() {
+        return T
+    }
+    let mut quals: Vec<&Qualifier> = vec![&Qualifier{_kind: QualifierKind::QualifierCount}; QualifierKind::QualifierCount as usize]; //A bit weird originally initialized to null pointers
+    if let All_types::qualify_type(T) = T {
+        for i in 0..QualifierKind::QualifierCount as usize {
+            quals[i] = T.qualifiers[i];
+        }
+        //type = T.type
+    }
+    for q in qualifiers {
+        quals[q.kind() as usize] = q;
+    }
+
+
+
+    return _qualify(T, quals)
 }
 pub fn _qualify<'a>(T: All_types, quals: Vec<&Qualifier>) -> All_types<'a> {
     todo!()

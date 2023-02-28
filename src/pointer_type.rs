@@ -82,7 +82,7 @@ pub fn required_flags_for_storage_class(storage_class: &Symbol) -> u64 {
 }
 pub fn pointer_type(element_type: &Type, mut flags: u64, storage_class: Symbol) -> &'static Type {
     flags |= required_flags_for_storage_class(&storage_class);
-    flags |= required_flags_for_element_type(element_type);
+    //flags |= required_flags_for_element_type(element_type);
     //TODO might be wrong C macros
     let key = PointerType{ this: &Type { kind: crate::types::TypeKind::TK_Pointer, symbols: RefCell::new(HashMap::new()) }, element_type, flags, storage_class };
     pointers.with(|pointers_set| {
