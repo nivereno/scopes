@@ -135,17 +135,21 @@ pub fn qualify<'a>(T: All_types<'a>, qualifiers: Vec<&Qualifier>) -> All_types<'
         for i in 0..QualifierKind::QualifierCount as usize {
             quals[i] = T.qualifiers[i];
         }
-        //type = T.type
+        //type = T.T
     }
     for q in qualifiers {
         quals[q.kind() as usize] = q;
     }
-
-
-
     return _qualify(T, quals)
 }
 pub fn _qualify<'a>(T: All_types, quals: Vec<&Qualifier>) -> All_types<'a> {
+    /*QualifyType key(type, quals);
+    auto it = qualifys.find(&key);
+    if (it != qualifys.end())
+        return *it;
+    auto result = new QualifyType(type, quals);
+    qualifys.insert(result);
+    return result;*/
     todo!()
 }
 pub fn copy_qualifiers<'a>(T: All_types<'a>, from: All_types) -> All_types<'a> {
@@ -173,7 +177,19 @@ pub fn has_qualifiers(T: All_types, mask: u32) -> bool {
     }
     return false
 }
-
+pub fn strip_qualifiers(T: All_types, mask: u32) -> All_types {
+    if let All_types::qualify_type(qt) = T {
+        if qt.mask & mask == 0 {
+            return T
+        }
+        let outmask: u32 = 0;
+        todo!()
+    }
+    return T
+}
+pub fn strip_qualifier(T: All_types, kind: QualifierKind) -> All_types {
+    strip_qualifiers(T, 1 << kind as u32)
+}
 /*
 
 const Type *strip_qualifiers(const Type *T, uint32_t mask) {

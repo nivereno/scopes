@@ -1,4 +1,4 @@
-use crate::qualify_type::QualifyType;
+use crate::qualify_type::{QualifyType, Qualifier};
 
 
 
@@ -6,5 +6,5 @@ use crate::qualify_type::QualifyType;
 pub enum All_types<'a> {
     //TODO
     qualify_type(&'a QualifyType<'a>),
-    
+    qualifier(&'a Qualifier)
 }
