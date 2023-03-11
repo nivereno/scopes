@@ -33,17 +33,27 @@ struct KeyEqual {
 };
 } // namespace QualifySet
 */
-thread_local!(static qualifys: RefCell<HashSet<&'static QualifyType<'static>>> = RefCell::new(HashSet::new()));
+thread_local!(static qualifys: RefCell<HashSet<Box<QualifyType<'static>>>> = RefCell::new(HashSet::new()));
 
 //------------------------------------------------------------------------------
 pub struct QualifyType<'a> {
     T: &'a Type,
     mask: u32,
-    qualifiers: Vec<&'a Qualifier>
+    qualifiers: Vec<Option<&'a Qualifier>>,
+    prehash: u32
 }
 impl QualifyType<'_> {
     fn kind(&self) -> usize {
         todo!() //wrong
+    }
+    pub fn new(T: &Type, _qualifiers: Vec<Option<&Qualifier>>) -> QualifyType {
+
+
+        for (i, q) in _qualifiers.iter().enumerate() {
+
+        }
+
+        todo!()
     }
 }
 /*
@@ -91,7 +101,7 @@ impl  Qualifier {
         todo!()
     }
 }
-
+ 
 /*
 
 static const Type *_qualify(const Type *type, const Qualifier * const * quals) {
@@ -126,23 +136,24 @@ const Type *qualify(const Type *type, const Qualifiers &qualifiers) {
 }
 
 */
-pub fn qualify<'a>(T: All_types<'a>, qualifiers: Vec<&Qualifier>) -> All_types<'a> {
+pub fn qualify<'a>(T: All_types<'a>, qualifiers: Vec<Option<&Qualifier>>) -> All_types<'a> {
     if qualifiers.is_empty() {
         return T
     }
-    let mut quals: Vec<&Qualifier> = vec![&Qualifier{_kind: QualifierKind::QualifierCount}; QualifierKind::QualifierCount as usize]; //A bit weird originally initialized to null pointers
+    let mut quals: Vec<Option<&Qualifier>> = vec![None; QualifierKind::QualifierCount as usize]; //A bit weird originally initialized to null pointers
     if let All_types::qualify_type(T) = T {
         for i in 0..QualifierKind::QualifierCount as usize {
             quals[i] = T.qualifiers[i];
         }
         //type = T.T
-    }
+    } 
     for q in qualifiers {
         quals[q.kind() as usize] = q;
     }
     return _qualify(T, quals)
 }
-pub fn _qualify<'a>(T: All_types, quals: Vec<&Qualifier>) -> All_types<'a> {
+pub fn _qualify<'a>(T: All_types, quals: Vec<Option<&Qualifier>>) -> All_types<'a> {
+    //let key = Box::new(QualifyType
     /*QualifyType key(type, quals);
     auto it = qualifys.find(&key);
     if (it != qualifys.end())
