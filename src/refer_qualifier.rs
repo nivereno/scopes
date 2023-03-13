@@ -25,7 +25,7 @@ pub fn refer_type(T: All_types, mut flags: u64, storage_class: Symbol) -> All_ty
     flags |= required_flags_for_storage_class(&storage_class);
     //flags |= required_flags_for_element_type(T);
     todo!();
-    return refers.with(|set| {
+    /*return refers.with(|set| {
         let key = Box::new(ReferQualifier::new(flags, storage_class));
         if let Some(result) = set.borrow().get(&key) {
             return qualify(T, vec!(&result.this))
@@ -33,7 +33,7 @@ pub fn refer_type(T: All_types, mut flags: u64, storage_class: Symbol) -> All_ty
         let qualifiers = key.this.clone();
         set.borrow_mut().insert(key);
         return qualify(T, vec!(&qualifiers))
-    });
+    });*/
 }
 pub fn refer_flags(T: All_types) -> u64 {
     if let Some(q) = try_qualifier(T) {

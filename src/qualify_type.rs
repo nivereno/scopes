@@ -43,10 +43,10 @@ pub struct QualifyType<'a> {
     prehash: u32
 }
 impl QualifyType<'_> {
-    fn kind(&self) -> usize {
+    pub fn kind(&self) -> usize {
         todo!() //wrong
     }
-    pub fn new(T: &Type, _qualifiers: Vec<Option<&Qualifier>>) -> QualifyType {
+    pub fn new<'a>(T: &'a Type, _qualifiers: Vec<Option<&'a Qualifier>>) -> QualifyType<'a> {
 
 
         for (i, q) in _qualifiers.iter().enumerate() {
@@ -97,7 +97,7 @@ impl  Qualifier {
         return Qualifier { _kind: kind }
     }
 
-    fn kind(&self) -> usize {
+    pub fn kind(&self) -> usize {
         todo!()
     }
 }
@@ -136,7 +136,7 @@ const Type *qualify(const Type *type, const Qualifiers &qualifiers) {
 }
 
 */
-pub fn qualify<'a>(T: All_types<'a>, qualifiers: Vec<Option<&Qualifier>>) -> All_types<'a> {
+pub fn qualify<'a>(T: All_types<'a>, qualifiers: Vec<&Qualifier>) -> All_types<'a> {
     if qualifiers.is_empty() {
         return T
     }
@@ -148,7 +148,7 @@ pub fn qualify<'a>(T: All_types<'a>, qualifiers: Vec<Option<&Qualifier>>) -> All
         //type = T.T
     } 
     for q in qualifiers {
-        quals[q.kind() as usize] = q;
+        quals[q.kind() as usize] = Some(q);
     }
     return _qualify(T, quals)
 }
@@ -172,13 +172,14 @@ pub fn copy_qualifiers<'a>(T: All_types<'a>, from: All_types) -> All_types<'a> {
 
 pub fn get_qualifier(T: All_types) -> &Qualifier {
     if let All_types::qualify_type(T) = T {
-        return T.qualifiers[T.kind() as usize];
+        //does and assert originaly so unwrap seems apt
+        return T.qualifiers[T.kind() as usize].unwrap();
     }
     panic!()
 }
 pub fn find_qualifier(T: All_types) -> Option<&Qualifier> {
     if let All_types::qualify_type(T) = T {
-        return Some(T.qualifiers[T.kind() as usize]);
+        return T.qualifiers[T.kind() as usize];
     }
     return None
 }
