@@ -3,6 +3,7 @@ use crate::qualify_type::{QualifyType, Qualifier};
 
 
 //To get rid of isa
+#[derive(PartialEq, Clone)]
 pub enum All_types<'a> {
     //TODO
     qualify_type(&'a QualifyType<'a>),
@@ -17,4 +18,6 @@ impl <'a>All_types<'a> {
             All_types::qualifier(T) => return T.kind(),
         }
     }
+
+    
 }

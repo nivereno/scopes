@@ -36,17 +36,31 @@ struct KeyEqual {
 thread_local!(static qualifys: RefCell<HashSet<Box<QualifyType<'static>>>> = RefCell::new(HashSet::new()));
 
 //------------------------------------------------------------------------------
+#[derive(Clone)]
 pub struct QualifyType<'a> {
     T: &'a Type,
+    this: All_types<'a>,
     mask: u32,
     qualifiers: Vec<Option<&'a Qualifier>>,
     prehash: u32
+}
+impl std::hash::Hash for QualifyType<'_> {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.prehash.hash(state);
+    }
+}
+impl PartialEq for QualifyType<'_> {
+    fn eq(&self, other: &Self) -> bool {
+        return self.T == other.T && self.mask == other.mask && self.qualifiers == other.qualifiers
+    }
+}
+impl Eq for QualifyType<'_> {
 }
 impl QualifyType<'_> {
     pub fn kind(&self) -> usize {
         todo!() //wrong
     }
-    pub fn new<'a>(T: &'a Type, _qualifiers: Vec<Option<&'a Qualifier>>) -> QualifyType<'a> {
+    pub fn new<'a>(T: All_types, _qualifiers: Vec<Option<&'a Qualifier>>) -> QualifyType<'a> {
 
 
         for (i, q) in _qualifiers.iter().enumerate() {
@@ -153,7 +167,15 @@ pub fn qualify<'a>(T: All_types<'a>, qualifiers: Vec<&Qualifier>) -> All_types<'
     return _qualify(T, quals)
 }
 pub fn _qualify<'a>(T: All_types, quals: Vec<Option<&Qualifier>>) -> All_types<'a> {
-    //let key = Box::new(QualifyType
+    let key = Box::new(QualifyType::new(T, quals));
+    qualifys.with(|qtypes| {
+        let qtypes = qtypes.borrow_mut();
+        if let Some(qt) = qtypes.get(&key) {
+            return All_types::qualify_type(qt)
+        }
+        qtypes.insert(key.clone());
+        return All_types::qualify_type(qtypes.get(&key).unwrap());
+    });
     /*QualifyType key(type, quals);
     auto it = qualifys.find(&key);
     if (it != qualifys.end())
