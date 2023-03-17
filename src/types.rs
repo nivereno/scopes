@@ -188,8 +188,8 @@ impl Type {
     fn kind(&self) -> TypeKind {
         return self.kind.clone()
     }
-    pub fn new(kind: TypeKind) {
-        
+    pub fn new(kind: TypeKind) -> Type {
+        todo!()
     }
 
     fn bind_with_doc(&mut self, name: Symbol, entry: &TypeEntry) {

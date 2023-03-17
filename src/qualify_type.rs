@@ -38,11 +38,11 @@ thread_local!(static qualifys: RefCell<HashSet<Box<QualifyType<'static>>>> = Ref
 //------------------------------------------------------------------------------
 #[derive(Clone)]
 pub struct QualifyType<'a> {
-    T: &'a Type,
+    T: Type,
     this: All_types<'a>,
     mask: u32,
     qualifiers: Vec<Option<&'a Qualifier>>,
-    prehash: u32
+    prehash: u64
 }
 impl std::hash::Hash for QualifyType<'_> {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
@@ -60,14 +60,16 @@ impl QualifyType<'_> {
     pub fn kind(&self) -> usize {
         todo!() //wrong
     }
-    pub fn new<'a>(T: All_types, _qualifiers: Vec<Option<&'a Qualifier>>) -> QualifyType<'a> {
-
-
+    pub fn new<'a>(_T: All_types<'a>, _qualifiers: &Vec<Option<&'a Qualifier>>) -> QualifyType<'a> {
+        let mut hasher = std::collections::hash_map::DefaultHasher::new();
+        let mut _prehash = 0;
+        let mut _mask = 0;
+        let mut quals: Vec<Option<&Qualifier>> = vec!();
         for (i, q) in _qualifiers.iter().enumerate() {
-
+            todo!()
         }
 
-        todo!()
+        return QualifyType { T: Type::new(crate::types::TypeKind::TK_Qualify), this: _T, mask: _mask, qualifiers: quals, prehash: _prehash }
     }
 }
 /*
@@ -164,9 +166,9 @@ pub fn qualify<'a>(T: All_types<'a>, qualifiers: Vec<&Qualifier>) -> All_types<'
     for q in qualifiers {
         quals[q.kind() as usize] = Some(q);
     }
-    return _qualify(T, quals)
+    return _qualify(T, &quals)
 }
-pub fn _qualify<'a>(T: All_types, quals: Vec<Option<&Qualifier>>) -> All_types<'a> {
+pub fn _qualify<'a>(T: All_types, quals: &Vec<Option<&Qualifier>>) -> All_types<'a> {
     let key = Box::new(QualifyType::new(T, quals));
     qualifys.with(|qtypes| {
         let qtypes = qtypes.borrow_mut();
@@ -187,7 +189,7 @@ pub fn _qualify<'a>(T: All_types, quals: Vec<Option<&Qualifier>>) -> All_types<'
 }
 pub fn copy_qualifiers<'a>(T: All_types<'a>, from: All_types) -> All_types<'a> {
     if let All_types::qualify_type(from) = from {
-        return _qualify(T, from.qualifiers.clone())
+        return _qualify(T, &from.qualifiers)
     }
     return T
 }
