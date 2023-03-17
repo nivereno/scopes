@@ -169,6 +169,7 @@ pub fn qualify<'a>(T: All_types<'a>, qualifiers: Vec<&Qualifier>) -> All_types<'
     return _qualify(T, &quals)
 }
 pub fn _qualify<'a>(T: All_types, quals: &Vec<Option<&Qualifier>>) -> All_types<'a> {
+    todo!()
     let key = Box::new(QualifyType::new(T, quals));
     qualifys.with(|qtypes| {
         let qtypes = qtypes.borrow_mut();
