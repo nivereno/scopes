@@ -169,7 +169,8 @@ pub fn qualify<'a>(T: All_types<'a>, qualifiers: Vec<&Qualifier>) -> All_types<'
     return _qualify(T, &quals)
 }
 pub fn _qualify<'a>(T: All_types, quals: &Vec<Option<&Qualifier>>) -> All_types<'a> {
-    todo!()
+    todo!();
+    /*
     let key = Box::new(QualifyType::new(T, quals));
     qualifys.with(|qtypes| {
         let qtypes = qtypes.borrow_mut();
@@ -178,7 +179,7 @@ pub fn _qualify<'a>(T: All_types, quals: &Vec<Option<&Qualifier>>) -> All_types<
         }
         qtypes.insert(key.clone());
         return All_types::qualify_type(qtypes.get(&key).unwrap());
-    });
+    });*/
     /*QualifyType key(type, quals);
     auto it = qualifys.find(&key);
     if (it != qualifys.end())

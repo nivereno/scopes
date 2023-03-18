@@ -24,6 +24,7 @@ mod qualify_type;
 mod refer_qualifier;
 mod qualifier;
 mod all_types;
+mod unique_qualifiers;
 use anchor::Anchor;
 
 fn main() {
