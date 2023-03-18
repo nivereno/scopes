@@ -2,6 +2,7 @@
 use crate::qualify_type::{QualifierKind, Qualifier};
 use std::cell::RefCell;
 use std::collections::{HashSet, HashMap};
+thread_local!(static views: RefCell<HashSet<Box<View_Qualifier>>> = RefCell::new(HashSet::new()));
 thread_local!(static uniques: RefCell<HashSet<Box<Unique_Qualifier>>> = RefCell::new(HashSet::new()));
 
 
@@ -34,14 +35,26 @@ pub fn map_unique_id(idmap: &HashMap<isize, HashSet<isize>>, fromid: i32, toid: 
 pub fn dump_idmap(idmap: &HashMap<isize, HashSet<isize>>) {
 
 }
-pub fn difference_idset() -> HashSet<isize> {
-    todo!()
+pub fn difference_idset(a: &HashSet<isize>, b: &HashSet<isize>) -> HashSet<isize> {
+    let mut c: HashSet<isize> = HashSet::new();
+    for id in a.difference(b).cloned() {
+        c.insert(id);
+    }
+    return c
 }
-pub fn intersect_idset() -> HashSet<isize> {
-    todo!()
+pub fn intersect_idset(a: &HashSet<isize>, b: &HashSet<isize>) -> HashSet<isize> {
+    let mut c: HashSet<isize> = HashSet::new();
+    for id in a.intersection(b).cloned() {
+        c.insert(id);
+    }
+    return c
 }
-pub fn union_idset() -> HashSet<isize> {
-    todo!()
+pub fn union_idset(a: &HashSet<isize>, b: &HashSet<isize>) -> HashSet<isize> {
+    let mut c: HashSet<isize> = HashSet::new();
+    for id in a.union(b).cloned() {
+        c.insert(id);
+    }
+    return c
 }
 pub fn dump_idset() {
 
