@@ -29,11 +29,23 @@ impl Unique_Qualifier {
         todo!()
     }
 }
-pub fn map_unique_id(idmap: &HashMap<isize, HashSet<isize>>, fromid: i32, toid: i32) {
-
+pub fn map_unique_id(idmap: &mut HashMap<isize, HashSet<isize>>, fromid: isize, toid: isize) {
+    if let Some(set) = idmap.get_mut(&fromid) {
+        set.insert(toid);
+    }
+    let mut set = HashSet::new();
+    set.insert(toid);
+    idmap.insert(fromid, set);
 }
 pub fn dump_idmap(idmap: &HashMap<isize, HashSet<isize>>) {
-
+    for (i, s) in idmap {
+        println!("{i}: ");
+        for j in s {
+            print!("{j} ");
+        }
+    }
+    let size = idmap.len();
+    println!("{size} entries")
 }
 pub fn difference_idset(a: &HashSet<isize>, b: &HashSet<isize>) -> HashSet<isize> {
     let mut c: HashSet<isize> = HashSet::new();
@@ -56,8 +68,11 @@ pub fn union_idset(a: &HashSet<isize>, b: &HashSet<isize>) -> HashSet<isize> {
     }
     return c
 }
-pub fn dump_idset() {
-
+pub fn dump_idset(a: &HashSet<isize>) {
+    for id in a {
+        print!("{id} ")
+    }
+    println!()
 }
 /*
 void dump_idmap(const ID2SetMap &idmap) {
