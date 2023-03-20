@@ -25,6 +25,7 @@ mod refer_qualifier;
 mod qualifier;
 mod all_types;
 mod unique_qualifiers;
+mod image_type;
 use anchor::Anchor;
 
 fn main() {
