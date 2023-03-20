@@ -1,22 +1,41 @@
 
 use crate::qualify_type::{QualifierKind, Qualifier};
 use std::cell::RefCell;
-use std::collections::{HashSet, HashMap};
+use std::collections::{HashSet, HashMap, self, hash_map};
+use std::hash::Hasher;
 thread_local!(static views: RefCell<HashSet<Box<View_Qualifier>>> = RefCell::new(HashSet::new()));
 thread_local!(static uniques: RefCell<HashSet<Box<Unique_Qualifier>>> = RefCell::new(HashSet::new()));
 
 
 struct Mutate_Qualifier {
+    qualifier: Qualifier,
 
 }
 impl Mutate_Qualifier {
-
+    pub fn new(kind: QualifierKind) -> Mutate_Qualifier {
+        return Mutate_Qualifier{qualifier: Qualifier::new(kind)}
+    }
 }
 struct View_Qualifier {
-
+    qualifier: Qualifier,
+    ids: HashSet<isize>,
+    sorted_ids: Vec<isize>,
+    prehash: u64
 }
 impl View_Qualifier {
-
+    pub fn new(_ids: HashSet<isize>) -> View_Qualifier {
+        let _qualifier = Qualifier::new(QualifierKind::QK_View);
+        let mut _sorted_ids = Vec::new();
+        for id in _ids.iter() {
+            _sorted_ids.push(id.clone());
+        }
+        _sorted_ids.sort();
+        let mut h = hash_map::DefaultHasher::new();
+        for entry in _sorted_ids.iter() {
+            h.write_isize(entry.clone());
+        }
+        return View_Qualifier{ qualifier: _qualifier, ids: _ids, sorted_ids: _sorted_ids, prehash: h.finish() }
+    }
 }
 struct Unique_Qualifier {
     qualifier: Qualifier,
@@ -25,8 +44,8 @@ struct Unique_Qualifier {
 }
 
 impl Unique_Qualifier {
-    pub fn new(id: isize) -> Unique_Qualifier {
-        todo!()
+    pub fn new(_id: isize) -> Unique_Qualifier {
+        return Unique_Qualifier { qualifier: Qualifier::new(QualifierKind::QK_Unique), id: _id }
     }
 }
 pub fn map_unique_id(idmap: &mut HashMap<isize, HashSet<isize>>, fromid: isize, toid: isize) {
